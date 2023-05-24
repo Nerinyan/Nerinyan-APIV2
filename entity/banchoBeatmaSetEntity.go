@@ -11,8 +11,8 @@ type BanchoBeatmapSetEntity struct {
 	ArtistUnicode  *string `json:"artist_unicode" gorm:"column:ARTIST_UNICODE"`
 	Creator        *string `json:"creator" gorm:"column:CREATOR"`
 	FavouriteCount *int    `json:"favourite_count" gorm:"column:FAVOURITE_COUNT"`
-	HypeCurrent    *int    `json:"-" gorm:"column:HYPE_CURRENT"`
-	HypeRequired   *int    `json:"-" gorm:"column:HYPE_REQUIRED"`
+	HypeCurrent    *int    `json:"-" gorm:"column:HYPE_CURRENT"`  // 조회용
+	HypeRequired   *int    `json:"-" gorm:"column:HYPE_REQUIRED"` // 조회용
 	Hype           struct {
 		Current  *int `json:"current"`
 		Required *int `json:"required"`
@@ -25,16 +25,16 @@ type BanchoBeatmapSetEntity struct {
 	TitleUnicode                 *string `json:"title_unicode" gorm:"column:TITLE_UNICODE"`
 	UserId                       *int    `json:"user_id" gorm:"column:USER_ID"`
 	Video                        *bool   `json:"video" gorm:"column:VIDEO"`
-	AvailabilityDownloadDisabled *bool   `json:"-" gorm:"column:AVAILABILITY_DOWNLOAD_DISABLED"`
-	AvailabilityMoreInformation  *string `json:"-" gorm:"column:AVAILABILITY_MORE_INFORMATION"`
+	AvailabilityDownloadDisabled *bool   `json:"-" gorm:"column:AVAILABILITY_DOWNLOAD_DISABLED"` // 조회용
+	AvailabilityMoreInformation  *string `json:"-" gorm:"column:AVAILABILITY_MORE_INFORMATION"`  // 조회용
 	Availability                 struct {
 		DownloadDisabled *bool   `json:"download_disabled"`
 		MoreInformation  *string `json:"more_information"`
 	} `json:"availability" gorm:"-"`
 	Bpm               *float64 `json:"bpm" gorm:"column:BPM"`
 	CanBeHyped        *bool    `json:"can_be_hyped" gorm:"column:CAN_BE_HYPED"`
-	DiscussionEnabled *bool    `json:"-" gorm:"column:DISCUSSION_ENABLED"`
-	DiscussionLocked  *bool    `json:"-" gorm:"column:DISCUSSION_LOCKED"`
+	DiscussionEnabled *bool    `json:"-" gorm:"column:DISCUSSION_ENABLED"` // 조회용
+	DiscussionLocked  *bool    `json:"-" gorm:"column:DISCUSSION_LOCKED"`  // 조회용
 	Discussion        struct {
 		Enabled *bool `json:"enabled"`
 		Locked  *bool `json:"locked"`
@@ -42,8 +42,8 @@ type BanchoBeatmapSetEntity struct {
 	IsScoreable                *bool      `json:"is_scoreable" gorm:"column:IS_SCOREABLE"`
 	LastUpdated                *time.Time `json:"last_updated" gorm:"column:LAST_UPDATED"`
 	LegacyThreadUrl            *string    `json:"legacy_thread_url" gorm:"column:LEGACY_THREAD_URL"`
-	NominationsSummaryCurrent  *int       `json:"-" gorm:"column:NOMINATIONS_SUMMARY_CURRENT"`
-	NominationsSummaryRequired *int       `json:"-" gorm:"column:NOMINATIONS_SUMMARY_REQUIRED"`
+	NominationsSummaryCurrent  *int       `json:"-" gorm:"column:NOMINATIONS_SUMMARY_CURRENT"`  // 조회용
+	NominationsSummaryRequired *int       `json:"-" gorm:"column:NOMINATIONS_SUMMARY_REQUIRED"` // 조회용
 	Nominations                struct {
 		SummaryCurrent  *int `json:"summary_current"`
 		SummaryRequired *int `json:"summary_required"`
@@ -57,14 +57,14 @@ type BanchoBeatmapSetEntity struct {
 	Beatmaps      []BanchoBeatmapEntity `json:"beatmaps" gorm:"foreignKey:BEATMAPSET_ID;references:BEATMAPSET_ID"`
 
 	Description *string `json:"description" gorm:"column:DESCRIPTION"`
-	GenreId     *string `json:"-" gorm:"column:GENRE_ID"`
-	GenreName   *string `json:"-" gorm:"column:GENRE_NAME"`
+	GenreId     *string `json:"-" gorm:"column:GENRE_ID"`   // 조회용
+	GenreName   *string `json:"-" gorm:"column:GENRE_NAME"` // 조회용
 	Genre       struct {
 		Id   *string `json:"id"`
 		Name *string `json:"name"`
 	} `json:"genre" gorm:"-"`
-	LanguageId   *string `json:"-" gorm:"column:LANGUAGE_ID"`
-	LanguageName *string `json:"-" gorm:"column:LANGUAGE_NAME"`
+	LanguageId   *string `json:"-" gorm:"column:LANGUAGE_ID"`   // 조회용
+	LanguageName *string `json:"-" gorm:"column:LANGUAGE_NAME"` // 조회용
 	Language     struct {
 		Id   *string `json:"id"`
 		Name *string `json:"name"`

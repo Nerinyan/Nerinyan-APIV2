@@ -1,7 +1,10 @@
 package route
 
 import (
+	"encoding/base64"
 	"github.com/Nerinyan/Nerinyan-APIV2/utils"
+	"github.com/goccy/go-json"
+	"github.com/pterm/pterm"
 	"regexp"
 	"strconv"
 	"strings"
@@ -175,4 +178,34 @@ func (v *SearchQuery) getNsfw() (allow bool) {
 		return
 	}
 	return
+}
+
+func (v *SearchQuery) parseOption() uint32 {
+	ss := strings.ToLower(v.Option)
+	if ss == "" {
+		v.OptionB |= 0xFFFFFFFF
+		return v.OptionB
+	}
+	for _, s2 := range strings.Split(ss, ",") {
+		v.OptionB |= searchOption[s2]
+	}
+	if v.OptionB == 0 {
+		v.OptionB = 0xFFFFFFFF
+	}
+	return v.OptionB
+}
+
+func (v *SearchQuery) parseB64() {
+	if v.B64 != "" {
+		b6, err := base64.StdEncoding.DecodeString(v.B64)
+		if err != nil {
+			pterm.Error.WithShowLineNumber().Println(err.Error())
+			return
+		}
+		err = json.Unmarshal(b6, &v)
+		if err != nil {
+			pterm.Error.WithShowLineNumber().Println(err.Error())
+			return
+		}
+	}
 }
