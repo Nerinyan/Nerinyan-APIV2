@@ -1,6 +1,8 @@
 package entity
 
-import "time"
+import (
+	"time"
+)
 
 type BanchoBeatmapEntity struct {
 	BeatmapId        int        `json:"beatmap_id" gorm:"column:BEATMAP_ID"`
