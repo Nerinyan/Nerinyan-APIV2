@@ -109,9 +109,9 @@ func DownloadBeatmapSet(c echo.Context) (err error) {
 	var row *sql.Row
 	if request.SetId != 0 {
 		go banchoCroller.ManualUpdateBeatmapSet(request.SetId)
-		row = db.Maria.QueryRow(`SELECT BEATMAPSET_ID,ARTIST,TITLE,LAST_UPDATED,VIDEO FROM BEATMAPSET WHERE BEATMAPSET_ID = ?`, request.SetId)
+		row = db.Maria.QueryRow(`SELECT BEATMAPSET_ID,ARTIST,TITLE,LAST_UPDATED,VIDEO,AVAILABILITY_DOWNLOAD_DISABLED FROM BEATMAPSET WHERE BEATMAPSET_ID = ?`, request.SetId)
 	} else if request.MapId != 0 {
-		row = db.Maria.QueryRow(`SELECT BEATMAPSET_ID,ARTIST,TITLE,LAST_UPDATED,VIDEO FROM BEATMAPSET WHERE BEATMAPSET_ID = (SELECT BEATMAPSET_ID FROM BEATMAP WHERE BEATMAP_ID = ?);`, request.MapId)
+		row = db.Maria.QueryRow(`SELECT BEATMAPSET_ID,ARTIST,TITLE,LAST_UPDATED,VIDEO,AVAILABILITY_DOWNLOAD_DISABLED FROM BEATMAPSET WHERE BEATMAPSET_ID = (SELECT BEATMAPSET_ID FROM BEATMAP WHERE BEATMAP_ID = ?);`, request.MapId)
 	} else {
 		return errors.New("set id & map id not found")
 	}
@@ -128,20 +128,19 @@ func DownloadBeatmapSet(c echo.Context) (err error) {
 		Id          string
 		Artist      string
 		Title       string
-		LastUpdated string
+		LastUpdated time.Time
 		Video       bool
+		Download    bool
 	}
 
-	if err = row.Scan(&a.Id, &a.Artist, &a.Title, &a.LastUpdated, &a.Video); err != nil {
+	if err = row.Scan(&a.Id, &a.Artist, &a.Title, &a.LastUpdated, &a.Video, &a.Download); err != nil {
 		if err == sql.ErrNoRows {
 			return errors.New("not in database")
 		}
 		return errors.New("database Query error")
 	}
-
-	lu, err := time.Parse("2006-01-02 15:04:05", a.LastUpdated)
-	if err != nil {
-		return errors.New("time Parse error")
+	if !a.Download {
+		return errors.New("download is disabled.")
 	}
 
 	url := fmt.Sprintf("https://osu.ppy.sh/api/v2/beatmapsets/%d/download", request.SetId)
@@ -154,7 +153,7 @@ func DownloadBeatmapSet(c echo.Context) (err error) {
 	serverFileName := fmt.Sprintf("%s/%d.osz", config.Config.TargetDir, request.SetId)
 	realFilename := cannotUseFilename.ReplaceAllString(fmt.Sprintf("%s %s - %s.osz", a.Id, a.Artist, a.Title), "_")
 	c.Response().Header().Set("FileName", realFilename)
-	if src.FileList[request.SetId].Unix() >= lu.Unix() { // 맵이 최신인경우
+	if src.FileList[request.SetId].Unix() >= a.LastUpdated.Unix() { // 맵이 최신인경우
 		c.Response().Header().Set("Content-Type", "application/x-osu-beatmap-archive")
 		c.Response().Header().Set("Content-Source", "nerinyan.moe")
 		return c.Attachment(serverFileName, realFilename)

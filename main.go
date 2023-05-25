@@ -47,7 +47,11 @@ func main() {
 	e.HTTPErrorHandler = func(err error, c echo.Context) {
 		if err != nil {
 			pterm.Error.WithShowLineNumber().Printfln("%+v", err)
-			_ = c.String(http.StatusInternalServerError, err.Error())
+			_ = c.JSON(
+				http.StatusInternalServerError, map[string]interface{}{
+					"error": err.Error(),
+				},
+			)
 		}
 	}
 

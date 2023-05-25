@@ -202,17 +202,18 @@ func (v *SearchQuery) parseOption() uint32 {
 	return v.OptionB
 }
 
-func (v *SearchQuery) parseB64() {
+func (v *SearchQuery) parseB64() (err error) {
 	if v.B64 != "" {
 		b6, err := base64.StdEncoding.DecodeString(v.B64)
 		if err != nil {
 			pterm.Error.WithShowLineNumber().Println(err.Error())
-			return
+			return err
 		}
 		err = json.Unmarshal(b6, &v)
 		if err != nil {
 			pterm.Error.WithShowLineNumber().Println(err.Error())
-			return
+			return err
 		}
 	}
+	return
 }

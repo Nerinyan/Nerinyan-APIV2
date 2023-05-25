@@ -25,18 +25,19 @@ func splitString(input string) (ss []string) {
 
 func Search(c echo.Context) (err error) {
 	var params SearchQuery
-	err = c.Bind(&params)
+	_ = c.Bind(&params)
+	err = params.parseB64()
 	if err != nil {
 		pterm.Error.WithShowLineNumber().Println(err.Error())
 		return
 	}
-	params.parseB64()
+
 	query := db.Gorm.Select(
 		"MS.*",
 	).Table(
 		"BEATMAPSET MS",
 	).Joins(
-		"INNER JOIN BEATMAP M ON MS.BEATMAPSET_ID = M.BEATMAPSET_ID AND M.DELETED_AT IS NULL",
+		"INNER JOIN BEATMAP M ON MS.BEATMAPSET_ID = M.BEATMAPSET_ID",
 	)
 	//===============================================================================================
 	// 조건처리
