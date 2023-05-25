@@ -32,83 +32,99 @@ func Search(c echo.Context) (err error) {
 		return
 	}
 
-	query := db.Gorm.Select(
-		"MS.*",
-	).Table(
-		"BEATMAPSET MS",
-	).Joins(
-		"INNER JOIN BEATMAP M ON MS.BEATMAPSET_ID = M.BEATMAPSET_ID",
-	)
+	setQuery := db.Gorm.Select("DISTINCT MS.*").Table("BEATMAPSET MS")
 	//===============================================================================================
 	// 조건처리
 	if params.Ranked != "all" && params.Ranked != "" {
-		query.Where("MS.RANKED IN ?", utils.NotInMapFindDefault(ranked, params.Ranked))
+		setQuery.Where("MS.RANKED IN ?", utils.NotInMapFindDefault(ranked, params.Ranked))
 	}
 	if !params.getNsfw() {
-		query.Where("MS.NSFW = ?", params.getNsfw())
+		setQuery.Where("MS.NSFW = ?", params.getNsfw())
 	}
 	if params.getVideo() {
-		query.Where("MS.VIDEO = ?", params.getVideo())
+		setQuery.Where("MS.VIDEO = ?", params.getVideo())
 	}
 	if params.getStoryboard() {
-		query.Where("MS.STORYBOARD = ?", params.getStoryboard())
+		setQuery.Where("MS.STORYBOARD = ?", params.getStoryboard())
 	}
+	mapQuery := db.Gorm.Select("M.BEATMAPSET_ID").Table("BEATMAPSET M")
+	useMap := false
 	if params.TotalLength.Min != 0 {
-		query.Where("M.TOTAL_LENGTH >= ?", params.TotalLength.Min)
+		mapQuery.Where("M.TOTAL_LENGTH >= ?", params.TotalLength.Min)
+		useMap = true
 	}
 	if params.TotalLength.Max != 0 {
-		query.Where("M.TOTAL_LENGTH <= ?", params.TotalLength.Max)
+		mapQuery.Where("M.TOTAL_LENGTH <= ?", params.TotalLength.Max)
+		useMap = true
 	}
 	if params.MaxCombo.Min != 0 {
-		query.Where("M.MAX_COMBO >= ?", params.MaxCombo.Min)
+		mapQuery.Where("M.MAX_COMBO >= ?", params.MaxCombo.Min)
+		useMap = true
 	}
 	if params.MaxCombo.Max != 0 {
-		query.Where("M.MAX_COMBO <= ?", params.MaxCombo.Max)
+		mapQuery.Where("M.MAX_COMBO <= ?", params.MaxCombo.Max)
+		useMap = true
 	}
 	if params.DifficultyRating.Min != 0 {
-		query.Where("M.DIFFICULTY_RATING >= ?", params.DifficultyRating.Min)
+		mapQuery.Where("M.DIFFICULTY_RATING >= ?", params.DifficultyRating.Min)
+		useMap = true
 	}
 	if params.DifficultyRating.Max != 0 {
-		query.Where("M.DIFFICULTY_RATING <= ?", params.DifficultyRating.Max)
+		mapQuery.Where("M.DIFFICULTY_RATING <= ?", params.DifficultyRating.Max)
+		useMap = true
 	}
 	if params.Accuracy.Max != 0 {
-		query.Where("M.ACCURACY >= ?", params.Accuracy.Max)
+		mapQuery.Where("M.ACCURACY >= ?", params.Accuracy.Max)
+		useMap = true
 	}
 	if params.Accuracy.Min != 0 {
-		query.Where("M.ACCURACY <= ?", params.Accuracy.Min)
+		mapQuery.Where("M.ACCURACY <= ?", params.Accuracy.Min)
+		useMap = true
 	}
 	if params.Ar.Max != 0 {
-		query.Where("M.AR >= ?", params.Ar.Max)
+		mapQuery.Where("M.AR >= ?", params.Ar.Max)
+		useMap = true
 	}
 	if params.Ar.Min != 0 {
-		query.Where("M.AR <= ?", params.Ar.Min)
+		mapQuery.Where("M.AR <= ?", params.Ar.Min)
+		useMap = true
 	}
 	if params.Cs.Max != 0 {
-		query.Where("M.CS >= ?", params.Cs.Max)
+		mapQuery.Where("M.CS >= ?", params.Cs.Max)
+		useMap = true
 	}
 	if params.Cs.Min != 0 {
-		query.Where("M.CS <= ?", params.Cs.Min)
+		mapQuery.Where("M.CS <= ?", params.Cs.Min)
+		useMap = true
 	}
 	if params.Drain.Max != 0 {
-		query.Where("M.DRAIN >= ?", params.Drain.Max)
+		mapQuery.Where("M.DRAIN >= ?", params.Drain.Max)
+		useMap = true
 	}
 	if params.Drain.Min != 0 {
-		query.Where("M.DRAIN <= ?", params.Drain.Min)
+		mapQuery.Where("M.DRAIN <= ?", params.Drain.Min)
+		useMap = true
 	}
 	if params.Bpm.Max != 0 {
-		query.Where("M.BPM >= ?", params.Bpm.Max)
+		mapQuery.Where("M.BPM >= ?", params.Bpm.Max)
+		useMap = true
 	}
 	if params.Bpm.Min != 0 {
-		query.Where("M.BPM <= ?", params.Bpm.Min)
+		mapQuery.Where("M.BPM <= ?", params.Bpm.Min)
+		useMap = true
 	}
 	if params.Mode != "all" && params.Mode != "" {
-		query.Where("M.MODE_INT IN ?", utils.NotInMapFindAllDefault(mode, utils.SplitTrimLower(params.Mode, ",")))
+		mapQuery.Where("M.MODE_INT IN ?", utils.NotInMapFindAllDefault(mode, utils.SplitTrimLower(params.Mode, ",")))
+		useMap = true
+	}
+	if useMap {
+		setQuery.Where("MS.BEATMAPSET_ID IN (?)", mapQuery)
 	}
 	text := splitString(params.Text)
 	text = utils.MakeArrayUnique(&text)
 	optionB := params.parseOption()
 	if len(text) > 0 && (optionB&0b1111 > 0 || optionB == 0xFFFFFFFF) {
-		query.Where(
+		setQuery.Where(
 			`
 			MS.BEATMAPSET_ID IN ( 
 				SELECT BEATMAPSET_ID FROM (
@@ -130,7 +146,7 @@ func Search(c echo.Context) (err error) {
 		)
 	}
 	// 조건 order, join, page
-	query.Order(
+	setQuery.Order(
 		utils.NotInMapFindDefault(orderBy, params.Sort),
 	).Limit(
 		params.getPageSize(),
@@ -139,7 +155,7 @@ func Search(c echo.Context) (err error) {
 	).Preload("Beatmaps") // 이게 있어야 gorm join이 작동함
 
 	var sets []entity.BanchoBeatmapSetEntity
-	if err = query.Find(&sets).Error; err != nil {
+	if err = setQuery.Find(&sets).Error; err != nil {
 		pterm.Error.Println(err)
 		c.Error(err)
 		return
