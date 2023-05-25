@@ -8,7 +8,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/pterm/pterm"
 	"net/http"
-	"regexp"
 	"strings"
 )
 
@@ -23,10 +22,6 @@ func splitString(input string) (ss []string) {
 	}
 	return
 }
-
-var banchoMapRegex, _ = regexp.Compile(`(?:https://osu[.]ppy[.]sh/beatmapsets/)(\d+?)(?:\D|$)`)
-var maniaKeyRegex, _ = regexp.Compile(`(\[[0-9]K\] )`)
-var NotAllowedString = strings.NewReplacer("\\", "", "/", "", "|", "", ":", "", "?", "", "*", "", "<", "", ">", "", "\"", "")
 
 func Search(c echo.Context) (err error) {
 	var params SearchQuery
@@ -148,10 +143,7 @@ func Search(c echo.Context) (err error) {
 		c.Error(err)
 		return
 	}
-	c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
-	c.Response().WriteHeader(http.StatusOK)
-	_, err = c.Response().Write(*utils.ToJsonString(sets))
-	return
+	return c.JSON(http.StatusOK, sets)
 	//===============================================================================================
 
 }

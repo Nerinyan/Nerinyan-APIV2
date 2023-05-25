@@ -11,6 +11,9 @@ import (
 )
 
 var (
+	banchoMapRegex, _ = regexp.Compile(`(?:https://osu[.]ppy[.]sh/beatmapsets/)(\d+?)(?:\D|$)`)
+	maniaKeyRegex, _  = regexp.Compile(`(\[[0-9]K\] )`)
+
 	regexpReplace, _    = regexp.Compile(`[^0-9A-z]|[\[\]]`)
 	regexpByteString, _ = regexp.Compile(`^((0x[\da-fA-F]{1,2})|([\da-fA-F]{1,2})|(1[0-2][0-7]))$`)
 	mode                = map[string]int{
