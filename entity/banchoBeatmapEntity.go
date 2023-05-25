@@ -2,6 +2,7 @@ package entity
 
 import (
 	"fmt"
+	"strings"
 )
 
 type BanchoBeatmapEntity struct {
@@ -46,5 +47,7 @@ func (BanchoBeatmapEntity) TableName() string {
 
 func (v *BanchoBeatmapEntity) SetBeatmapSet(beatmapSet *BanchoBeatmapSetEntity) {
 	v.BeatmapSet = beatmapSet
-	v.OsuFile = fmt.Sprintf("%s - %s (%s) [%s].osu", *v.BeatmapSet.Artist, *v.BeatmapSet.Title, *v.BeatmapSet.Creator, *v.Version)
+	v.OsuFile = notAllowedString.Replace(fmt.Sprintf("%s - %s (%s) [%s].osu", *v.BeatmapSet.Artist, *v.BeatmapSet.Title, *v.BeatmapSet.Creator, *v.Version))
 }
+
+var notAllowedString = strings.NewReplacer("\\", "", "/", "", "|", "", ":", "", "?", "", "*", "", "<", "", ">", "", "\"", "")
