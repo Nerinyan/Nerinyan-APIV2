@@ -14,7 +14,6 @@ import (
 	"github.com/pterm/pterm"
 	"log"
 	"net/http"
-	"runtime"
 	"time"
 )
 
@@ -94,19 +93,7 @@ func main() {
 
 	e.GET("/health", route.Health)
 	e.GET("/robots.txt", route.Robots)
-	e.GET(
-		"/status", func(c echo.Context) error {
-			return c.JSON(
-				http.StatusOK, map[string]interface{}{
-					"CpuThreadCount":        runtime.NumCPU(),
-					"RunningGoroutineCount": runtime.NumGoroutine(),
-					"apiCount":              *banchoCroller.ApiCount,
-					"fileCount":             len(src.FileList),
-					"fileSize":              src.FileSizeToString,
-				},
-			)
-		},
-	)
+	e.GET("/status", route.Status)
 
 	// 맵 파일 다운로드 ===================================================================================================
 	e.GET("/d/:setId", route.DownloadBeatmapSet, route.Embed)
