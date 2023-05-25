@@ -125,22 +125,22 @@ func DownloadBeatmapSet(c echo.Context) (err error) {
 	}
 
 	var a struct {
-		Id          string
-		Artist      string
-		Title       string
-		LastUpdated time.Time
-		Video       bool
-		Download    bool
+		Id               string
+		Artist           string
+		Title            string
+		LastUpdated      time.Time
+		Video            bool
+		DownloadDisabled bool
 	}
 
-	if err = row.Scan(&a.Id, &a.Artist, &a.Title, &a.LastUpdated, &a.Video, &a.Download); err != nil {
+	if err = row.Scan(&a.Id, &a.Artist, &a.Title, &a.LastUpdated, &a.Video, &a.DownloadDisabled); err != nil {
 		if err == sql.ErrNoRows {
 			return errors.New("not in database")
 		}
 		return errors.New("database Query error")
 	}
-	if !a.Download {
-		return errors.New("download is disabled.")
+	if a.DownloadDisabled {
+		return errors.New("download is disabled from bancho.")
 	}
 
 	url := fmt.Sprintf("https://osu.ppy.sh/api/v2/beatmapsets/%d/download", request.SetId)
