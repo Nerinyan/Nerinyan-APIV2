@@ -148,7 +148,10 @@ func Search(c echo.Context) (err error) {
 		c.Error(err)
 		return
 	}
-	return c.JSON(http.StatusOK, sets)
+	c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
+	c.Response().WriteHeader(http.StatusOK)
+	_, err = c.Response().Write(*utils.ToJsonString(sets))
+	return
 	//===============================================================================================
 
 }

@@ -50,7 +50,7 @@ func main() {
 	e.HideBanner = true
 	e.HTTPErrorHandler = func(err error, c echo.Context) {
 		if err != nil {
-			pterm.Error.Printfln("%+v", err)
+			pterm.Error.WithShowLineNumber().Printfln("%+v", err)
 			_ = c.String(http.StatusInternalServerError, err.Error())
 		}
 	}

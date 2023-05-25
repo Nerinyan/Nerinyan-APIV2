@@ -117,14 +117,15 @@ type SearchQuery struct {
 	Bpm              minMax `json:"bpm"`              // bpm				map.bpm
 
 	// query
-	Sort       string      `query:"sort" json:"sort"`   // 정렬	  order by
-	Page       interface{} `query:"p" json:"page"`      // 페이지 limit
-	PageSize   interface{} `query:"ps" json:"pageSize"` // 페이지 당 크기
-	Text       string      `query:"q" json:"query"`     // 문자열 검색
-	ParsedText []string    `json:"-"`                   // 문자열 검색 파싱 내부 사용용
-	Option     string      `query:"option" json:"option"`
-	OptionB    uint32      `json:"-"`    //artist 1,creator 2,tags 4 ,title 8
-	B64        string      `query:"b64"` // body
+	Sort        string      `query:"sort" json:"sort"`   // 정렬	  order by
+	Page        interface{} `query:"p" json:"page"`      // 페이지 limit
+	PageSize    interface{} `query:"ps" json:"pageSize"` // 페이지 당 크기
+	PageSizeInt int         `query:"-" json:"-"`         // 페이지 당 크기
+	Text        string      `query:"q" json:"query"`     // 문자열 검색
+	ParsedText  []string    `json:"-"`                   // 문자열 검색 파싱 내부 사용용
+	Option      string      `query:"option" json:"option"`
+	OptionB     uint32      `json:"-"`    //artist 1,creator 2,tags 4 ,title 8
+	B64         string      `query:"b64"` // body
 }
 
 func (v *SearchQuery) getVideo() (allow bool) {
@@ -166,7 +167,10 @@ func (v *SearchQuery) getPage() (page int) {
 }
 
 func (v *SearchQuery) getPageSize() int {
-	return utils.IntMinMaxDefault(utils.ToInt(v.PageSize), 1, 1000, 50)
+	if v.PageSizeInt == 0 {
+		v.PageSizeInt = utils.IntMinMaxDefault(utils.ToInt(v.PageSize), 1, 1000, 50)
+	}
+	return v.PageSizeInt
 }
 func (v *SearchQuery) getNsfw() (allow bool) {
 	if n, ok := v.Nsfw.(bool); ok {

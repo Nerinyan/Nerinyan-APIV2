@@ -1,6 +1,8 @@
 package utils
 
-import "strconv"
+import (
+	"strconv"
+)
 
 func IntMin(i int, min int) int {
 	if i >= min {
@@ -43,10 +45,7 @@ func ToInt(i any) (ii int) {
 		return v
 	}
 	if v, ok := i.(string); ok {
-		iii, err := strconv.Atoi(v)
-		if err != nil {
-			return iii
-		}
+		ii, _ = strconv.Atoi(v)
 	}
 
 	return
