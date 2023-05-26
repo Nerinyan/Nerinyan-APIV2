@@ -128,7 +128,7 @@ func DownloadBeatmapSet(c echo.Context) (err error) {
 		Id          string
 		Artist      string
 		Title       string
-		LastUpdated string
+		LastUpdated time.Time
 		Video       bool
 	}
 
@@ -139,10 +139,7 @@ func DownloadBeatmapSet(c echo.Context) (err error) {
 		return errors.New("database Query error")
 	}
 
-	lu, err := time.Parse("2006-01-02 15:04:05", a.LastUpdated)
-	if err != nil {
-		return errors.New("time Parse error")
-	}
+	lu := a.LastUpdated
 
 	url := fmt.Sprintf("https://osu.ppy.sh/api/v2/beatmapsets/%d/download", request.SetId)
 	if a.Video && request.NoVideo {
