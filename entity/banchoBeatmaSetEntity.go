@@ -3,6 +3,7 @@ package entity
 import (
 	"github.com/Nerinyan/Nerinyan-APIV2/src"
 	"gorm.io/gorm"
+	"sort"
 	"time"
 )
 
@@ -96,6 +97,11 @@ func (v *BanchoBeatmapSetEntity) AfterFind(tx *gorm.DB) (err error) {
 	}
 	v.Cache.Video = src.FileList[v.BeatmapsetId].Unix() >= time.Time(*v.LastUpdated).Unix()
 	v.Cache.NoVideo = src.FileList[(v.BeatmapsetId)*-1].Unix() >= time.Time(*v.LastUpdated).Unix()
+	sort.SliceStable(
+		v.Beatmaps, func(i, j int) bool {
+			return *v.Beatmaps[i].DifficultyRating < *v.Beatmaps[j].DifficultyRating
+		},
+	)
 	return
 }
 func (BanchoBeatmapSetEntity) TableName() string {

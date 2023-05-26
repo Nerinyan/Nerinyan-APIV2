@@ -25,17 +25,20 @@ func splitString(input string) (ss []string) {
 
 func Search(c echo.Context) (err error) {
 	var params SearchQuery
-	_ = c.Bind(&params)
+	err = c.Bind(&params)
+	if err != nil {
+		pterm.Error.WithShowLineNumber().Println(err.Error())
+	}
 	err = params.parseB64()
 	if err != nil {
 		pterm.Error.WithShowLineNumber().Println(err.Error())
 		return
 	}
-
-	setQuery := db.Gorm.Select("DISTINCT MS.*").Table("BEATMAPSET MS")
+	pterm.Info.WithShowLineNumber().Printfln("%+v", params)
+	setQuery := db.Gorm.Select("MS.*").Table("BEATMAPSET MS").Where("MS.DELETED_AT IS NULL")
 	//===============================================================================================
-	// 조건처리
-	if params.Ranked != "all" && params.Ranked != "" {
+	// 맵셋 조건
+	if params.Ranked != "all" {
 		setQuery.Where("MS.RANKED IN ?", utils.NotInMapFindDefault(ranked, params.Ranked))
 	}
 	if !params.getNsfw() {
@@ -47,7 +50,9 @@ func Search(c echo.Context) (err error) {
 	if params.getStoryboard() {
 		setQuery.Where("MS.STORYBOARD = ?", params.getStoryboard())
 	}
-	mapQuery := db.Gorm.Select("M.BEATMAPSET_ID").Table("BEATMAPSET M")
+	//===============================================================================================
+	// 맵 조건
+	mapQuery := db.Gorm.Select("M.BEATMAPSET_ID").Table("BEATMAP M").Where("M.DELETED_AT IS NULL")
 	useMap := false
 	if params.TotalLength.Min != 0 {
 		mapQuery.Where("M.TOTAL_LENGTH >= ?", params.TotalLength.Min)
@@ -152,7 +157,7 @@ func Search(c echo.Context) (err error) {
 		params.getPageSize(),
 	).Offset(
 		utils.Multiply(params.getPage(), params.getPageSize()),
-	).Preload("Beatmaps") // 이게 있어야 gorm join이 작동함
+	).Preload("Beatmaps", "DELETED_AT IS NULL") // 이게 있어야 gorm join이 작동함
 
 	var sets []entity.BanchoBeatmapSetEntity
 	if err = setQuery.Find(&sets).Error; err != nil {
