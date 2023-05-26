@@ -19,7 +19,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"time"
 )
 
 //
@@ -528,18 +527,7 @@ func Search(c echo.Context) (err error) {
 			)
 		}
 
-		lu, err := time.Parse("2006-01-02 15:04:05", *set.LastUpdated)
-		if err != nil {
-			return c.JSON(
-				http.StatusInternalServerError, logger.Error(
-					c, &bodyStruct.ErrorStruct{
-						Code:    "SEARCH-005-1",
-						Error:   err,
-						Message: "time Parse error",
-					},
-				),
-			)
-		}
+		lu := *set.LastUpdated
 		set.Cache.Video = src.FileList[*set.Id].Unix() >= lu.Unix()
 		set.Cache.NoVideo = src.FileList[(*set.Id)*-1].Unix() >= lu.Unix()
 
