@@ -122,7 +122,7 @@ type SearchQuery struct {
 	// query
 	Sort       string      `query:"sort" json:"sort"`   // 정렬	  order by
 	Page       interface{} `query:"p" json:"page"`      // 페이지 limit
-	PageSize   int         `query:"ps" json:"pageSize"` // 페이지 당 크기
+	PageSize   interface{} `query:"ps" json:"pageSize"` // 페이지 당 크기
 	Text       string      `query:"q" json:"query"`     // 문자열 검색
 	ParsedText []string    `json:"-"`                   // 문자열 검색 파싱 내부 사용용
 	Option     string      `query:"option" json:"option"`
@@ -135,16 +135,15 @@ func (v *SearchQuery) Parse() {
 }
 
 func (v *SearchQuery) getVideo() (allow bool) {
-	if n, ok := v.Video.(bool); ok {
+	if n, ok := (v.Video).(bool); ok {
 		return n
 	}
-	if n, ok := v.Video.(string); ok {
+	if n, ok := (v.Video).(string); ok {
 		allow, _ = strconv.ParseBool(n)
 		allow = allow || n == "all"
 		return
 	}
 	if strings.Contains(utils.TrimLower(v.Extra), "video") {
-		v.Video = true
 		return true
 	}
 	return
@@ -153,16 +152,15 @@ func (v *SearchQuery) getVideo() (allow bool) {
 
 func (v *SearchQuery) getStoryboard() (allow bool) {
 
-	if n, ok := v.Storyboard.(bool); ok {
+	if n, ok := (v.Storyboard).(bool); ok {
 		return n
 	}
-	if n, ok := v.Storyboard.(string); ok {
+	if n, ok := (v.Storyboard).(string); ok {
 		allow, _ = strconv.ParseBool(n)
 		allow = allow || n == "all"
 		return
 	}
 	if strings.Contains(utils.TrimLower(v.Extra), "storyboard") {
-		v.Storyboard = true
 		return true
 	}
 	return
@@ -173,13 +171,13 @@ func (v *SearchQuery) getPage() (page int) {
 }
 
 func (v *SearchQuery) getPageSize() int {
-	return utils.IntMinMaxDefault(v.PageSize, 1, 1000, 50)
+	return utils.IntMinMaxDefault(utils.ToInt(v.PageSize), 1, 1000, 50)
 }
 func (v *SearchQuery) getNsfw() (allow bool) {
-	if n, ok := v.Nsfw.(bool); ok {
+	if n, ok := (v.Nsfw).(bool); ok {
 		return n
 	}
-	if n, ok := v.Nsfw.(string); ok {
+	if n, ok := (v.Nsfw).(string); ok {
 		allow, _ = strconv.ParseBool(n)
 		allow = allow || n == "all"
 		return
