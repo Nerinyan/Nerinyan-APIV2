@@ -48,6 +48,7 @@ type BeatmapSetsIN struct {
 	} `json:"nominations_summary"`
 	Ranked        int          `json:"ranked"`
 	RankedDate    *time.Time   `json:"ranked_date"`
+	DeletedAt     *time.Time   `json:"deleted_at"`
 	Storyboard    bool         `json:"storyboard"`
 	SubmittedDate *time.Time   `json:"submitted_date"`
 	Tags          *string      `json:"tags"`

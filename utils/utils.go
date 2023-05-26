@@ -1,25 +1,25 @@
 package utils
 
 import (
+	"encoding/json"
 	"fmt"
-	"github.com/goccy/go-json"
-	"log"
+	"github.com/pterm/pterm"
 	"runtime"
 	"strings"
 )
 
-func ToJsonIndentString(i interface{}) (str *[]byte) {
+func ToJsonIndentString(i any) (str *[]byte) {
 	b, err := json.MarshalIndent(i, "", "    ")
 	if err != nil {
-		log.Println(err)
+		pterm.Error.WithShowLineNumber().Println(err)
 		return
 	}
 	return &b
 }
-func ToJsonString(i interface{}) (str *[]byte) {
+func ToJsonString(i any) (str *[]byte) {
 	b, err := json.Marshal(i)
 	if err != nil {
-		log.Println(err)
+		pterm.Error.WithShowLineNumber().Println(err)
 		return
 	}
 	return &b

@@ -14,15 +14,11 @@ import (
 	"github.com/pterm/pterm"
 	"log"
 	"net/http"
-	"runtime"
+	"time"
 )
 
 // TODO DOING DB 테이블 없으면 자동으로 생성하게
-// TODO DOING 로그 디비에 넣을때 어떤 데이터 넣을지.
 // TODO DOING 헤더로 프론트인지 api 인지 구분할수있게
-//  	END   에러 핸들러.
-//  	END   검색엔진 버그 체크하고 쿼리문 수정
-//  	END   비트맵 반쵸에서 다운로드중에 클라이언트가 취소해도 서버는 계속 다운로드.
 // TODO DOING 서버간 비트맵파일 해시값 비교해서 서로 다른경우 둘다 서버에서 삭제.
 // TODO DOING 서버끼리 서로 비트맵파일 동기화 시킬수 있게
 // TODO DOING 반쵸 비트맵 다운로드 제한 10분간 약 200건 10분 정지. (429 too many request) => 10분 내 100건 봇 감지 알고리즘
@@ -50,8 +46,12 @@ func main() {
 	e.HideBanner = true
 	e.HTTPErrorHandler = func(err error, c echo.Context) {
 		if err != nil {
-			pterm.Error.Printfln("%+v", err)
-			_ = c.String(http.StatusInternalServerError, err.Error())
+			pterm.Error.WithShowLineNumber().Printfln("%+v", err)
+			_ = c.JSON(
+				http.StatusInternalServerError, map[string]interface{}{
+					"error": err.Error(),
+				},
+			)
 		}
 	}
 
@@ -67,15 +67,15 @@ func main() {
 	}()
 
 	e.Pre(
-		//middleware.RateLimiter(
-		//	middleware.NewRateLimiterMemoryStoreWithConfig(
-		//		middleware.RateLimiterMemoryStoreConfig{
-		//			Rate:      100,
-		//			Burst:     200,
-		//			ExpiresIn: time.Minute,
-		//		},
-		//	),
-		//),
+		middleware.RateLimiter(
+			middleware.NewRateLimiterMemoryStoreWithConfig(
+				middleware.RateLimiterMemoryStoreConfig{
+					Rate:      200,
+					Burst:     1000,
+					ExpiresIn: time.Minute,
+				},
+			),
+		),
 
 		middleware.RemoveTrailingSlash(),
 		middleware.Logger(),
@@ -97,19 +97,7 @@ func main() {
 
 	e.GET("/health", route.Health)
 	e.GET("/robots.txt", route.Robots)
-	e.GET(
-		"/status", func(c echo.Context) error {
-			return c.JSON(
-				http.StatusOK, map[string]interface{}{
-					"CpuThreadCount":        runtime.NumCPU(),
-					"RunningGoroutineCount": runtime.NumGoroutine(),
-					"apiCount":              *banchoCroller.ApiCount,
-					"fileCount":             len(src.FileList),
-					"fileSize":              src.FileSizeToString,
-				},
-			)
-		},
-	)
+	e.GET("/status", route.Status)
 
 	// 맵 파일 다운로드 ===================================================================================================
 	e.GET("/d/:setId", route.DownloadBeatmapSet, route.Embed)

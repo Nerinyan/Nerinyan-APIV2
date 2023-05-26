@@ -14,7 +14,7 @@ type ExecQueue struct {
 	Args  []any
 }
 
-var InsertQueueChannel chan ExecQueue
+var InsertQueueChannel = make(chan ExecQueue, 10)
 var queryNameRegex, _ = regexp.Compile("^(/[*])(.+?)([*]/)")
 
 func AddInsertQueue(query string, args ...any) {
@@ -32,7 +32,7 @@ func AddInsertQueue(query string, args ...any) {
 func init() {
 	go func() {
 		for {
-			InsertQueueChannel = make(chan ExecQueue)
+
 			for ins := range InsertQueueChannel {
 				st := time.Now().UnixMilli()
 				result := Gorm.Exec(ins.Query, ins.Args...)
