@@ -28,6 +28,7 @@ func Search(c echo.Context) (err error) {
 	err = c.Bind(&params)
 	if err != nil {
 		pterm.Error.WithShowLineNumber().Println(err.Error())
+		pterm.Error.WithShowLineNumber().Println("URI", c.Request().RequestURI)
 	}
 	err = params.parseB64()
 	if err != nil {
