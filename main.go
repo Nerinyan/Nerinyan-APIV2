@@ -5,6 +5,7 @@ import (
 	"github.com/Nerinyan/Nerinyan-APIV2/config"
 	"github.com/Nerinyan/Nerinyan-APIV2/db"
 	"github.com/Nerinyan/Nerinyan-APIV2/logger"
+	"github.com/Nerinyan/Nerinyan-APIV2/middlewareFunc"
 	"github.com/Nerinyan/Nerinyan-APIV2/route"
 	"github.com/Nerinyan/Nerinyan-APIV2/src"
 	"github.com/Nerinyan/Nerinyan-APIV2/webhook"
@@ -45,18 +46,18 @@ func main() {
 	e := echo.New()
 	e.HideBanner = true
 	e.HTTPErrorHandler = func(err error, c echo.Context) {
-		if err != nil {
-			pterm.Error.WithShowLineNumber().Printfln("%+v", err)
-			_ = c.JSON(
-				http.StatusInternalServerError, map[string]interface{}{
-					"error": err.Error(),
-				},
-			)
-		}
+		pterm.Error.WithShowLineNumber().Printfln("%+v", err)
+		_ = c.JSON(
+			http.StatusInternalServerError, map[string]interface{}{
+				"error":      err,
+				"request_id": c.Response().Header().Get("X-Request-Id"),
+				"time":       time.Now(),
+			},
+		)
+
 	}
 
 	e.Renderer = &route.Renderer
-	webhook.DiscordInfoStartUP()
 
 	go func() {
 		for {
@@ -84,6 +85,7 @@ func main() {
 		//middleware.RateLimiterWithConfig(middleWareFunc.RateLimiterConfig),
 		middleware.RequestID(),
 		middleware.Recover(),
+		middlewareFunc.RequestLogger(),
 	)
 
 	// docs ============================================================================================================
@@ -127,6 +129,7 @@ func main() {
 
 	// ====================================================================================================================
 	pterm.Info.Println("ECHO STARTED AT", config.Config.Port)
+	webhook.DiscordInfoStartUP()
 	e.Logger.Fatal(e.Start(":" + config.Config.Port))
 
 }

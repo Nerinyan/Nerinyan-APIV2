@@ -4,7 +4,7 @@ import (
 	"strconv"
 )
 
-func IntMin(i int, min int) int {
+func IntMin(i, min int) int {
 	if i >= min {
 		return i
 	} else {
@@ -12,7 +12,7 @@ func IntMin(i int, min int) int {
 	}
 }
 
-func IntMax(i int, max int) int {
+func IntMax(i, max int) int {
 	if i <= max {
 		return i
 	} else {

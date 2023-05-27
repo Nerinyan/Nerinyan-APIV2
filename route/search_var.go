@@ -120,50 +120,39 @@ type SearchQuery struct {
 	Bpm              minMax `json:"bpm"`              // bpm				map.bpm
 
 	// query
-	Sort       string      `query:"sort" json:"sort"`   // 정렬	  order by
-	Page       interface{} `query:"p" json:"page"`      // 페이지 limit
-	PageSize   interface{} `query:"ps" json:"pageSize"` // 페이지 당 크기
-	Text       string      `query:"q" json:"query"`     // 문자열 검색
-	ParsedText []string    `json:"-"`                   // 문자열 검색 파싱 내부 사용용
-	Option     string      `query:"option" json:"option"`
-	OptionB    uint32      `json:"-"`    //artist 1,creator 2,tags 4 ,title 8
-	B64        string      `query:"b64"` // body
-}
-
-func (v *SearchQuery) Parse() {
-
+	Sort       string   `query:"sort" json:"sort"`   // 정렬	  order by
+	Page       string   `query:"p" json:"page"`      // 페이지 limit
+	PageSize   string   `query:"ps" json:"pageSize"` // 페이지 당 크기
+	Text       string   `query:"q" json:"query"`     // 문자열 검색
+	ParsedText []string `json:"-"`                   // 문자열 검색 파싱 내부 사용용
+	Option     string   `query:"option" json:"option"`
+	OptionB    uint32   `json:"-"`    //artist 1,creator 2,tags 4 ,title 8
+	B64        string   `query:"b64"` // body
 }
 
 func (v *SearchQuery) getVideo() (allow bool) {
-	if n, ok := (v.Video).(bool); ok {
-		return n
+	sb := v.Video
+	switch sb.(type) {
+	case bool:
+		allow = sb.(bool)
+	case string:
+		allow, _ = strconv.ParseBool(sb.(string))
+		allow = allow || (sb.(string) == "all")
 	}
-	if n, ok := (v.Video).(string); ok {
-		allow, _ = strconv.ParseBool(n)
-		allow = allow || n == "all"
-		return
-	}
-	if strings.Contains(utils.TrimLower(v.Extra), "video") {
-		return true
-	}
-	return
+	return allow || strings.Contains(utils.TrimLower(v.Extra), "video")
 
 }
 
 func (v *SearchQuery) getStoryboard() (allow bool) {
-
-	if n, ok := (v.Storyboard).(bool); ok {
-		return n
+	sb := v.Storyboard
+	switch sb.(type) {
+	case bool:
+		allow = sb.(bool)
+	case string:
+		allow, _ = strconv.ParseBool(sb.(string))
+		allow = allow || (sb.(string) == "all")
 	}
-	if n, ok := (v.Storyboard).(string); ok {
-		allow, _ = strconv.ParseBool(n)
-		allow = allow || n == "all"
-		return
-	}
-	if strings.Contains(utils.TrimLower(v.Extra), "storyboard") {
-		return true
-	}
-	return
+	return allow || strings.Contains(utils.TrimLower(v.Extra), "storyboard")
 }
 
 func (v *SearchQuery) getPage() (page int) {
@@ -174,13 +163,15 @@ func (v *SearchQuery) getPageSize() int {
 	return utils.IntMinMaxDefault(utils.ToInt(v.PageSize), 1, 1000, 50)
 }
 func (v *SearchQuery) getNsfw() (allow bool) {
-	if n, ok := (v.Nsfw).(bool); ok {
-		return n
-	}
-	if n, ok := (v.Nsfw).(string); ok {
-		allow, _ = strconv.ParseBool(n)
-		allow = allow || n == "all"
-		return
+	if v.Nsfw != nil {
+		if n, ok := (v.Nsfw).(bool); ok {
+			return n
+		}
+		if n, ok := (v.Nsfw).(string); ok {
+			allow, _ = strconv.ParseBool(n)
+			allow = allow || n == "all"
+			return
+		}
 	}
 	return
 }

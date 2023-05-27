@@ -34,7 +34,6 @@ func Search(c echo.Context) (err error) {
 		pterm.Error.WithShowLineNumber().Println(err.Error())
 		return
 	}
-	//pterm.Info.WithShowLineNumber().Printfln("%+v", params)
 	setQuery := db.Gorm.Select("MS.*").Table("BEATMAPSET MS").Where("MS.DELETED_AT IS NULL")
 	//===============================================================================================
 	// 맵셋 조건
