@@ -35,6 +35,10 @@ func Search(c echo.Context) (err error) {
 		pterm.Error.WithShowLineNumber().Println(err.Error())
 		return
 	}
+	optionB := params.parseOption()
+	text := splitString(params.Text)
+	text = utils.MakeArrayUnique(&text)
+
 	setQuery := db.Gorm.Select("MS.*").Table("BEATMAPSET MS").Where("MS.DELETED_AT IS NULL")
 	//===============================================================================================
 	// 맵셋 조건
@@ -49,6 +53,9 @@ func Search(c echo.Context) (err error) {
 	}
 	if params.getStoryboard() {
 		setQuery.Where("MS.STORYBOARD = ?", params.getStoryboard())
+	}
+	if optionB&(1<<6) > 0 && len(text) > 0 {
+		setQuery.Where("MS.BEATMAPSET_ID IN @BEATMAPSET_ID", sql.Named("BEATMAPSET_ID", text))
 	}
 	//===============================================================================================
 	// 맵 조건
@@ -122,10 +129,19 @@ func Search(c echo.Context) (err error) {
 		mapQuery.Where("M.MODE_INT IN ?", utils.NotInMapFindAllDefault(mode, utils.SplitTrimLower(params.Mode, ",")))
 		useMap = true
 	}
+	if optionB&(1<<4) > 0 && len(text) > 0 {
+		mapQuery.Where("M.CHECKSUM IN @CHECKSUM", sql.Named("CHECKSUM", text))
+		useMap = true
+	}
+	if optionB&(1<<5) > 0 && len(text) > 0 {
+		mapQuery.Where("M.BEATMAP_ID IN @BEATMAP_ID", sql.Named("BEATMAP_ID", text))
+		useMap = true
+	}
 
-	text := splitString(params.Text)
-	text = utils.MakeArrayUnique(&text)
-	optionB := params.parseOption()
+	if useMap {
+		setQuery.Where("MS.BEATMAPSET_ID IN (?)", mapQuery)
+	}
+
 	if len(text) > 0 && (optionB&0b1111 > 0 || optionB == 0xFFFFFFFF) {
 		setQuery.Where(
 			`
@@ -148,19 +164,7 @@ func Search(c echo.Context) (err error) {
 			sql.Named("LEN", len(text)),
 		)
 	}
-	if optionB&(1<<4) > 0 {
-		mapQuery.Where("M.CHECKSUM IN @CHECKSUM", sql.Named("CHECKSUM", text))
-	}
-	if optionB&(1<<5) > 0 {
-		mapQuery.Where("M.BEATMAP_ID IN @BEATMAP_ID", sql.Named("BEATMAP_ID", text))
-	}
-	if optionB&(1<<6) > 0 {
-		setQuery.Where("MS.BEATMAPSET_ID IN @BEATMAPSET_ID", sql.Named("BEATMAPSET_ID", text))
-	}
 
-	if useMap {
-		setQuery.Where("MS.BEATMAPSET_ID IN (?)", mapQuery)
-	}
 	// 조건 order, join, page
 	setQuery.Order(
 		utils.NotInMapFindDefault(orderBy, params.Sort),
