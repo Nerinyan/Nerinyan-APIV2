@@ -1,4 +1,4 @@
-package route
+package search
 
 import (
 	"encoding/base64"
@@ -6,7 +6,6 @@ import (
 	"github.com/goccy/go-json"
 	"github.com/pterm/pterm"
 	"regexp"
-	"strconv"
 	"strings"
 )
 
@@ -41,37 +40,42 @@ var (
 		"default":   {4, 2, 1},
 	}
 	orderBy = map[string]string{
-		"ranked_asc":           "RANKED_DATE",
-		"ranked_date":          "RANKED_DATE",
-		"ranked_date asc":      "RANKED_DATE",
+		"artist_desc": "ARTIST DESC",
+		"artist desc": "ARTIST DESC",
+		"artist_asc":  "ARTIST",
+		"artist":      "ARTIST",
+		"artist asc":  "ARTIST",
+
 		"favourites_asc":       "FAVOURITE_COUNT",
 		"favourite_count":      "FAVOURITE_COUNT",
 		"favourite_count asc":  "FAVOURITE_COUNT",
-		"plays_asc":            "PLAY_COUNT",
-		"play_count":           "PLAY_COUNT",
-		"play_count asc":       "PLAY_COUNT",
-		"updated_asc":          "LAST_UPDATED",
-		"last_updated":         "LAST_UPDATED",
-		"last_updated asc":     "LAST_UPDATED",
-		"title_asc":            "TITLE",
-		"title":                "TITLE",
-		"title asc":            "TITLE",
-		"artist_asc":           "ARTIST",
-		"artist":               "ARTIST",
-		"artist asc":           "ARTIST",
-		"ranked_desc":          "RANKED_DATE DESC",
-		"ranked_date desc":     "RANKED_DATE DESC",
 		"favourites_desc":      "FAVOURITE_COUNT DESC",
 		"favourite_count desc": "FAVOURITE_COUNT DESC",
-		"plays_desc":           "PLAY_COUNT DESC",
-		"play_count desc":      "PLAY_COUNT DESC",
-		"updated_desc":         "LAST_UPDATED DESC",
-		"last_updated desc":    "LAST_UPDATED DESC",
-		"title_desc":           "TITLE DESC",
-		"title desc":           "TITLE DESC",
-		"artist_desc":          "ARTIST DESC",
-		"artist desc":          "ARTIST DESC",
-		"default":              "RANKED_DATE DESC",
+
+		"plays_asc":       "PLAY_COUNT",
+		"play_count":      "PLAY_COUNT",
+		"play_count asc":  "PLAY_COUNT",
+		"plays_desc":      "PLAY_COUNT DESC",
+		"play_count desc": "PLAY_COUNT DESC",
+
+		"ranked_asc":       "RANKED_DATE",
+		"ranked_date":      "RANKED_DATE",
+		"ranked_date asc":  "RANKED_DATE",
+		"ranked_desc":      "RANKED_DATE DESC",
+		"ranked_date desc": "RANKED_DATE DESC",
+
+		"last_updated":      "LAST_UPDATED",
+		"last_updated asc":  "LAST_UPDATED",
+		"last_updated desc": "LAST_UPDATED DESC",
+		"updated_asc":       "LAST_UPDATED",
+		"updated_desc":      "LAST_UPDATED DESC",
+
+		"title_asc":  "TITLE",
+		"title":      "TITLE",
+		"title asc":  "TITLE",
+		"title_desc": "TITLE DESC",
+		"title desc": "TITLE DESC",
+		"default":    "RANKED_DATE DESC",
 	}
 	searchOption = map[string]uint32{
 		"artist":   1 << 0, // 1
@@ -102,14 +106,13 @@ type SearchQuery struct {
 	Extra string `query:"e" json:"extra"` // 스토리보드 비디오.
 
 	// set
-	Ranked     string      `query:"s" json:"ranked"`      // 랭크상태 			set.ranked
-	Nsfw       interface{} `query:"nsfw" json:"nsfw"`     // R18				set.nsfw
-	Video      interface{} `query:"v" json:"video"`       // 비디오				set.video
-	Storyboard interface{} `query:"sb" json:"storyboard"` // 스토리보드			set.storyboard
-	//Creator    string `query:"creator" json:"creator"` // 제작자				set.creator
+	Ranked     string `query:"s" json:"ranked"`      // 랭크상태   set.ranked
+	Nsfw       bool   `query:"nsfw" json:"nsfw"`     // R18       set.nsfw
+	Video      bool   `query:"v" json:"video"`       // 비디오     set.video
+	Storyboard bool   `query:"sb" json:"storyboard"` // 스토리보드  set.storyboard
 
 	// map
-	Mode             string `query:"m" json:"m"`      // 게임모드			map.mode_int
+	Mode             string `query:"m" json:"m"`      // 게임모드			    map.mode_int
 	TotalLength      minMax `json:"totalLength"`      // 플레이시간			map.totalLength
 	MaxCombo         minMax `json:"maxCombo"`         // 콤보				map.maxCombo
 	DifficultyRating minMax `json:"difficultyRating"` // 난이도				map.difficultyRating
@@ -121,8 +124,8 @@ type SearchQuery struct {
 
 	// query
 	Sort       string   `query:"sort" json:"sort"`   // 정렬	  order by
-	Page       string   `query:"p" json:"page"`      // 페이지 limit
-	PageSize   string   `query:"ps" json:"pageSize"` // 페이지 당 크기
+	Page       int      `query:"p" json:"page"`      // 페이지 limit
+	PageSize   int      `query:"ps" json:"pageSize"` // 페이지 당 크기
 	Text       string   `query:"q" json:"query"`     // 문자열 검색
 	ParsedText []string `json:"-"`                   // 문자열 검색 파싱 내부 사용용
 	Option     string   `query:"option" json:"option"`
@@ -130,29 +133,35 @@ type SearchQuery struct {
 	B64        string   `query:"b64"` // body
 }
 
+//	func (v *SearchQuery) getVideo() (allow bool) {
+//		sb := v.Video
+//		switch sb.(type) {
+//		case bool:
+//			allow = sb.(bool)
+//		case string:
+//			allow, _ = strconv.ParseBool(sb.(string))
+//			allow = allow || (sb.(string) == "all")
+//		}
+//		return allow || strings.Contains(utils.TrimLower(v.Extra), "video")
+//
+// }
 func (v *SearchQuery) getVideo() (allow bool) {
-	sb := v.Video
-	switch sb.(type) {
-	case bool:
-		allow = sb.(bool)
-	case string:
-		allow, _ = strconv.ParseBool(sb.(string))
-		allow = allow || (sb.(string) == "all")
-	}
-	return allow || strings.Contains(utils.TrimLower(v.Extra), "video")
-
+	return v.Video || strings.Contains(utils.TrimLower(v.Extra), "video")
 }
 
+//	func (v *SearchQuery) getStoryboard() (allow bool) {
+//		sb := v.Storyboard
+//		switch sb.(type) {
+//		case bool:
+//			allow = sb.(bool)
+//		case string:
+//			allow, _ = strconv.ParseBool(sb.(string))
+//			allow = allow || (sb.(string) == "all")
+//		}
+//		return allow || strings.Contains(utils.TrimLower(v.Extra), "storyboard")
+//	}
 func (v *SearchQuery) getStoryboard() (allow bool) {
-	sb := v.Storyboard
-	switch sb.(type) {
-	case bool:
-		allow = sb.(bool)
-	case string:
-		allow, _ = strconv.ParseBool(sb.(string))
-		allow = allow || (sb.(string) == "all")
-	}
-	return allow || strings.Contains(utils.TrimLower(v.Extra), "storyboard")
+	return v.Storyboard || strings.Contains(utils.TrimLower(v.Extra), "storyboard")
 }
 
 func (v *SearchQuery) getPage() (page int) {
@@ -162,18 +171,22 @@ func (v *SearchQuery) getPage() (page int) {
 func (v *SearchQuery) getPageSize() int {
 	return utils.IntMinMaxDefault(utils.ToInt(v.PageSize), 1, 1000, 50)
 }
+
+//	func (v *SearchQuery) getNsfw() (allow bool) {
+//		if v.Nsfw != nil {
+//			if n, ok := (v.Nsfw).(bool); ok {
+//				return n
+//			}
+//			if n, ok := (v.Nsfw).(string); ok {
+//				allow, _ = strconv.ParseBool(n)
+//				allow = allow || n == "all"
+//				return
+//			}
+//		}
+//		return
+//	}
 func (v *SearchQuery) getNsfw() (allow bool) {
-	if v.Nsfw != nil {
-		if n, ok := (v.Nsfw).(bool); ok {
-			return n
-		}
-		if n, ok := (v.Nsfw).(string); ok {
-			allow, _ = strconv.ParseBool(n)
-			allow = allow || n == "all"
-			return
-		}
-	}
-	return
+	return v.Nsfw
 }
 
 func (v *SearchQuery) parseOption() uint32 {

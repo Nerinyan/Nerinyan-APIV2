@@ -6,7 +6,9 @@ import (
 	"github.com/Nerinyan/Nerinyan-APIV2/db"
 	"github.com/Nerinyan/Nerinyan-APIV2/logger"
 	"github.com/Nerinyan/Nerinyan-APIV2/middlewareFunc"
-	"github.com/Nerinyan/Nerinyan-APIV2/route"
+	"github.com/Nerinyan/Nerinyan-APIV2/route/common"
+	"github.com/Nerinyan/Nerinyan-APIV2/route/download"
+	"github.com/Nerinyan/Nerinyan-APIV2/route/search"
 	"github.com/Nerinyan/Nerinyan-APIV2/src"
 	"github.com/Nerinyan/Nerinyan-APIV2/webhook"
 	"github.com/labstack/echo/v4"
@@ -57,7 +59,7 @@ func main() {
 
 	}
 
-	e.Renderer = &route.Renderer
+	e.Renderer = &download.Renderer
 
 	go func() {
 		for {
@@ -97,14 +99,14 @@ func main() {
 
 	// 서버상태 체크용 ====================================================================================================
 
-	e.GET("/health", route.Health)
-	e.GET("/robots.txt", route.Robots)
-	e.GET("/status", route.Status)
+	e.GET("/health", common.Health)
+	e.GET("/robots.txt", common.Robots)
+	e.GET("/status", common.Status)
 
 	// 맵 파일 다운로드 ===================================================================================================
-	e.GET("/d/:setId", route.DownloadBeatmapSet, route.Embed)
-	e.GET("/beatmap/:mapId", route.DownloadBeatmapSet)
-	e.GET("/beatmapset/:setId", route.DownloadBeatmapSet)
+	e.GET("/d/:setId", download.DownloadBeatmapSet, download.Embed)
+	e.GET("/beatmap/:mapId", download.DownloadBeatmapSet)
+	e.GET("/beatmapset/:setId", download.DownloadBeatmapSet)
 	//TODO 맵아이디, 맵셋아이디 지원
 
 	// 비트맵 BG  =========================================================================================================
@@ -116,8 +118,8 @@ func main() {
 	)
 
 	// 비트맵 리스트 검색용 ================================================================================================
-	e.GET("/search", route.Search)
-	e.POST("/search", route.Search)
+	e.GET("/search", search.Search)
+	e.POST("/search", search.Search)
 
 	// 개발중 || 테스트중 ===================================================================================================
 	e.GET(

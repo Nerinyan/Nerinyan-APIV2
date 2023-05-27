@@ -1,4 +1,4 @@
-package route
+package download
 
 import (
 	"bytes"
@@ -62,19 +62,8 @@ func DownloadBeatmapSet(c echo.Context) (err error) {
 	var request downloadBeatmapSet_requestBody
 	err = c.Bind(&request)
 	if err != nil {
-
-		return c.JSON(
-			http.StatusInternalServerError, logger.Error(
-				c, &bodyStruct.ErrorStruct{
-					Code:        "DownloadBeatmapSet-001",
-					Path:        c.Path(),
-					RequestId:   c.Response().Header().Get("X-Request-ID"),
-					Error:       err,
-					Message:     "request parse error",
-					RequestData: request,
-				},
-			),
-		)
+		pterm.Error.WithShowLineNumber().Println(err)
+		return
 	}
 	request.NoVideo = request.NoVideo || request.NoVideo2
 

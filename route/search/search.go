@@ -1,4 +1,4 @@
-package route
+package search
 
 import (
 	"database/sql"
@@ -42,10 +42,10 @@ func Search(c echo.Context) (err error) {
 		setQuery.Where("MS.RANKED IN ?", utils.NotInMapFindDefault(ranked, params.Ranked))
 	}
 	if !params.getNsfw() {
-		setQuery.Where("MS.NSFW = ?", params.getNsfw())
+		setQuery.Where("MS.NSFW = ?", false)
 	}
 	if params.getVideo() {
-		setQuery.Where("MS.VIDEO = ?", params.getVideo())
+		setQuery.Where("MS.VIDEO = ?", true)
 	}
 	if params.getStoryboard() {
 		setQuery.Where("MS.STORYBOARD = ?", params.getStoryboard())

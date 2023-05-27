@@ -1,4 +1,4 @@
-package route
+package common
 
 import (
 	"github.com/Nerinyan/Nerinyan-APIV2/banchoCroller"
