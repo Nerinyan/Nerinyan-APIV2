@@ -122,9 +122,7 @@ func Search(c echo.Context) (err error) {
 		mapQuery.Where("M.MODE_INT IN ?", utils.NotInMapFindAllDefault(mode, utils.SplitTrimLower(params.Mode, ",")))
 		useMap = true
 	}
-	if useMap {
-		setQuery.Where("MS.BEATMAPSET_ID IN (?)", mapQuery)
-	}
+
 	text := splitString(params.Text)
 	text = utils.MakeArrayUnique(&text)
 	optionB := params.parseOption()
@@ -149,6 +147,19 @@ func Search(c echo.Context) (err error) {
 			sql.Named("OTHER", optionB == 0xFFFFFFFF),
 			sql.Named("LEN", len(text)),
 		)
+	}
+	if optionB&(1<<4) > 0 {
+		mapQuery.Where("M.CHECKSUM IN @CHECKSUM", sql.Named("CHECKSUM", text))
+	}
+	if optionB&(1<<5) > 0 {
+		mapQuery.Where("M.BEATMAP_ID IN @BEATMAP_ID", sql.Named("BEATMAP_ID", text))
+	}
+	if optionB&(1<<6) > 0 {
+		setQuery.Where("MS.BEATMAPSET_ID IN @BEATMAPSET_ID", sql.Named("BEATMAPSET_ID", text))
+	}
+
+	if useMap {
+		setQuery.Where("MS.BEATMAPSET_ID IN (?)", mapQuery)
 	}
 	// 조건 order, join, page
 	setQuery.Order(
