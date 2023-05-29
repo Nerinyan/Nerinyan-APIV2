@@ -3,7 +3,7 @@ package search
 import (
 	"database/sql"
 	"github.com/Nerinyan/Nerinyan-APIV2/db"
-	"github.com/Nerinyan/Nerinyan-APIV2/entity"
+	"github.com/Nerinyan/Nerinyan-APIV2/db/mariadb/entity"
 	"github.com/Nerinyan/Nerinyan-APIV2/utils"
 	"github.com/labstack/echo/v4"
 	"github.com/pterm/pterm"
@@ -54,7 +54,7 @@ func Search(c echo.Context) (err error) {
 	if params.getStoryboard() {
 		setQuery.Where("MS.STORYBOARD = ?", params.getStoryboard())
 	}
-	if optionB&(1<<6) > 0 && len(text) > 0 {
+	if optionB != 0xFFFFFFFF && optionB&(1<<6) > 0 && len(text) > 0 {
 		setQuery.Where("MS.BEATMAPSET_ID IN @BEATMAPSET_ID", sql.Named("BEATMAPSET_ID", text))
 	}
 	//===============================================================================================
@@ -129,11 +129,11 @@ func Search(c echo.Context) (err error) {
 		mapQuery.Where("M.MODE_INT IN ?", utils.NotInMapFindAllDefault(mode, utils.SplitTrimLower(params.Mode, ",")))
 		useMap = true
 	}
-	if optionB&(1<<4) > 0 && len(text) > 0 {
+	if optionB != 0xFFFFFFFF && optionB&(1<<4) > 0 && len(text) > 0 {
 		mapQuery.Where("M.CHECKSUM IN @CHECKSUM", sql.Named("CHECKSUM", text))
 		useMap = true
 	}
-	if optionB&(1<<5) > 0 && len(text) > 0 {
+	if optionB != 0xFFFFFFFF && optionB&(1<<5) > 0 && len(text) > 0 {
 		mapQuery.Where("M.BEATMAP_ID IN @BEATMAP_ID", sql.Named("BEATMAP_ID", text))
 		useMap = true
 	}
