@@ -62,7 +62,7 @@ func Search(c echo.Context) (err error) {
 	mapQuery := db.Gorm.Select("M.BEATMAPSET_ID").Table("BEATMAP M").Where("M.DELETED_AT IS NULL")
 	useMap := false
 	if params.TotalLength.Min != 0 {
-		mapQuery.Where("M.TOTAL_LENGTH >= ?", params.TotalLength.Min)
+		mapQuery.Where("? <= M.TOTAL_LENGTH", params.TotalLength.Min)
 		useMap = true
 	}
 	if params.TotalLength.Max != 0 {
@@ -70,7 +70,7 @@ func Search(c echo.Context) (err error) {
 		useMap = true
 	}
 	if params.MaxCombo.Min != 0 {
-		mapQuery.Where("M.MAX_COMBO >= ?", params.MaxCombo.Min)
+		mapQuery.Where("? <= M.MAX_COMBO", params.MaxCombo.Min)
 		useMap = true
 	}
 	if params.MaxCombo.Max != 0 {
@@ -78,51 +78,51 @@ func Search(c echo.Context) (err error) {
 		useMap = true
 	}
 	if params.DifficultyRating.Min != 0 {
-		mapQuery.Where("M.DIFFICULTY_RATING >= ?", params.DifficultyRating.Min)
+		mapQuery.Where("? <= M.DIFFICULTY_RATING", params.DifficultyRating.Min)
 		useMap = true
 	}
 	if params.DifficultyRating.Max != 0 {
 		mapQuery.Where("M.DIFFICULTY_RATING <= ?", params.DifficultyRating.Max)
 		useMap = true
 	}
-	if params.Accuracy.Max != 0 {
-		mapQuery.Where("M.ACCURACY >= ?", params.Accuracy.Max)
-		useMap = true
-	}
 	if params.Accuracy.Min != 0 {
-		mapQuery.Where("M.ACCURACY <= ?", params.Accuracy.Min)
+		mapQuery.Where("? <= M.ACCURACY", params.Accuracy.Min)
 		useMap = true
 	}
-	if params.Ar.Max != 0 {
-		mapQuery.Where("M.AR >= ?", params.Ar.Max)
+	if params.Accuracy.Max != 0 {
+		mapQuery.Where("M.ACCURACY <= ?", params.Accuracy.Max)
 		useMap = true
 	}
 	if params.Ar.Min != 0 {
-		mapQuery.Where("M.AR <= ?", params.Ar.Min)
+		mapQuery.Where("? <= M.AR", params.Ar.Min)
 		useMap = true
 	}
-	if params.Cs.Max != 0 {
-		mapQuery.Where("M.CS >= ?", params.Cs.Max)
+	if params.Ar.Max != 0 {
+		mapQuery.Where("M.AR <= ?", params.Ar.Max)
 		useMap = true
 	}
 	if params.Cs.Min != 0 {
-		mapQuery.Where("M.CS <= ?", params.Cs.Min)
+		mapQuery.Where("? <= M.CS", params.Cs.Min)
 		useMap = true
 	}
-	if params.Drain.Max != 0 {
-		mapQuery.Where("M.DRAIN >= ?", params.Drain.Max)
+	if params.Cs.Max != 0 {
+		mapQuery.Where("M.CS <= ?", params.Cs.Max)
 		useMap = true
 	}
 	if params.Drain.Min != 0 {
-		mapQuery.Where("M.DRAIN <= ?", params.Drain.Min)
+		mapQuery.Where("? <= M.DRAIN", params.Drain.Min)
 		useMap = true
 	}
-	if params.Bpm.Max != 0 {
-		mapQuery.Where("M.BPM >= ?", params.Bpm.Max)
+	if params.Drain.Max != 0 {
+		mapQuery.Where("M.DRAIN <= ?", params.Drain.Max)
 		useMap = true
 	}
 	if params.Bpm.Min != 0 {
-		mapQuery.Where("M.BPM <= ?", params.Bpm.Min)
+		mapQuery.Where("? <= M.BPM", params.Bpm.Min)
+		useMap = true
+	}
+	if params.Bpm.Max != 0 {
+		mapQuery.Where("M.BPM <= ?", params.Bpm.Max)
 		useMap = true
 	}
 	if params.Mode != "all" && params.Mode != "" {
