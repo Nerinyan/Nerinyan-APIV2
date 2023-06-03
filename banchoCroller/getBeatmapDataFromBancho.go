@@ -1,6 +1,7 @@
 package banchoCroller
 
 import (
+	"database/sql"
 	"fmt"
 	"github.com/Nerinyan/Nerinyan-APIV2/config"
 	"github.com/Nerinyan/Nerinyan-APIV2/db"
@@ -510,11 +511,11 @@ func updateSearchBeatmaps(data []osu.BeatmapSetsIN) (err error) {
 		Args:  mapInsertBuf,
 	}
 
-	//db.InsertQueueChannel <- db.ExecQueue{
-	//	//삭제된맵 삭제
-	//	Query: `/* SOFT DELETE MAP */ UPDATE BEATMAP SET DELETED_AT = current_timestamp WHERE  BEATMAPSET_ID IN  @mapSets AND BEATMAP_ID NOT IN @maps;`,
-	//	Args:  []any{sql.Named("mapSets", beatmapSets), sql.Named("maps", beatmaps)},
-	//}
+	db.InsertQueueChannel <- db.ExecQueue{
+		//삭제된맵 삭제
+		Query: `/* SOFT DELETE MAP */ UPDATE BEATMAP SET DELETED_AT = CURRENT_TIMESTAMP WHERE  BEATMAPSET_ID IN  @mapSets AND BEATMAP_ID NOT IN @maps;`,
+		Args:  []any{sql.Named("mapSets", beatmapSets), sql.Named("maps", beatmaps)},
+	}
 
 	return
 }
