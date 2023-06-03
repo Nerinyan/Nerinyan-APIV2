@@ -272,7 +272,9 @@ func getUpdatedMapAsc() {
 }
 
 func stdGETBancho(url string, str interface{}) (err error) {
-	pterm.Info.Printfln("%s | %-50s | URL : %s", time.Now().Format("15:04:05.000"), pterm.Yellow("BANCHO CRAWLER"), url)
+	if config.Config.Log.Crawler {
+		pterm.Info.Printfln("%s | %-50s | URL : %s", time.Now().Format("15:04:05.000"), pterm.Yellow("BANCHO CRAWLER"), url)
+	}
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", url, nil)
 
