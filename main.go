@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/Nerinyan/Nerinyan-APIV2/banchoCroller"
+	"github.com/Nerinyan/Nerinyan-APIV2/banchoCrawler"
 	"github.com/Nerinyan/Nerinyan-APIV2/config"
 	"github.com/Nerinyan/Nerinyan-APIV2/db"
 	"github.com/Nerinyan/Nerinyan-APIV2/logger"
@@ -13,7 +13,6 @@ import (
 	"github.com/Nerinyan/Nerinyan-APIV2/webhook"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/pkg/errors"
 	"github.com/pterm/pterm"
 	"log"
 	"net/http"
@@ -33,13 +32,14 @@ func init() {
 	config.LoadConfig()
 	src.StartIndex()
 	db.ConnectRDBMS()
-	go banchoCroller.LoadBancho(ch)
+	middlewareFunc.StartHandler()
+	go banchoCrawler.LoadBancho(ch)
 	_ = <-ch
 
 	if config.Config.Debug {
-		//go banchoCroller.UpdateAllPackList()
+		//go banchoCrawler.UpdateAllPackList()
 	} else {
-		go banchoCroller.RunGetBeatmapDataASBancho()
+		go banchoCrawler.RunGetBeatmapDataASBancho()
 	}
 
 }
@@ -70,6 +70,19 @@ func main() {
 	}()
 
 	e.Pre(
+		//필수 우선순
+		middleware.Recover(),
+		middleware.RequestID(),
+		middleware.RemoveTrailingSlash(),
+		middleware.Logger(),
+		middlewareFunc.RequestConsolLogger(),
+		middleware.RemoveTrailingSlash(),
+
+		//1차 필터
+		middlewareFunc.BlackListHandler(), // 1분주기 갱신
+		middleware.CORSWithConfig(middleware.CORSConfig{AllowOrigins: []string{"*"}, AllowMethods: []string{echo.GET, echo.HEAD, echo.POST}}),
+
+		//2차 필터
 		middleware.RateLimiter(
 			middleware.NewRateLimiterMemoryStoreWithConfig(
 				middleware.RateLimiterMemoryStoreConfig{
@@ -80,25 +93,14 @@ func main() {
 			),
 		),
 
-		middleware.RemoveTrailingSlash(),
-		middleware.Logger(),
-
-		middleware.CORSWithConfig(middleware.CORSConfig{AllowOrigins: []string{"*"}, AllowMethods: []string{echo.GET, echo.HEAD, echo.POST}}),
 		//middleware.RateLimiterWithConfig(middleWareFunc.RateLimiterConfig),
-		middleware.RequestID(),
-		middleware.Recover(),
-		middlewareFunc.RequestLogger(),
+
 	)
 
 	// docs ============================================================================================================
-	e.GET(
-		"/", func(c echo.Context) error {
-			return c.Redirect(http.StatusPermanentRedirect, `https://nerinyan.stoplight.io/docs/nerinyan-api`)
-		},
-	)
+	e.GET("/", common.Root)
 
 	// 서버상태 체크용 ====================================================================================================
-
 	e.GET("/health", common.Health)
 	e.GET("/robots.txt", common.Robots)
 	e.GET("/status", common.Status)
@@ -122,12 +124,6 @@ func main() {
 	e.POST("/search", search.Search)
 
 	// 개발중 || 테스트중 ===================================================================================================
-	e.GET(
-		"/test", func(c echo.Context) error {
-			return errors.New("zz")
-			//return errors.New(utils.GetFileLine() + "SEBAL ERROR")
-		},
-	)
 
 	// ====================================================================================================================
 	pterm.Info.Println("ECHO STARTED AT", config.Config.Port)

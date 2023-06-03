@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
-	"github.com/Nerinyan/Nerinyan-APIV2/banchoCroller"
+	"github.com/Nerinyan/Nerinyan-APIV2/banchoCrawler"
 	"github.com/Nerinyan/Nerinyan-APIV2/bodyStruct"
 	"github.com/Nerinyan/Nerinyan-APIV2/config"
 	"github.com/Nerinyan/Nerinyan-APIV2/db"
@@ -97,7 +97,7 @@ func DownloadBeatmapSet(c echo.Context) (err error) {
 
 	var row *sql.Row
 	if request.SetId != 0 {
-		go banchoCroller.ManualUpdateBeatmapSet(request.SetId)
+		go banchoCrawler.ManualUpdateBeatmapSet(request.SetId)
 		row = db.Maria.QueryRow(`SELECT BEATMAPSET_ID,ARTIST,TITLE,LAST_UPDATED,VIDEO,AVAILABILITY_DOWNLOAD_DISABLED FROM BEATMAPSET WHERE BEATMAPSET_ID = ?`, request.SetId)
 	} else if request.MapId != 0 {
 		row = db.Maria.QueryRow(`SELECT BEATMAPSET_ID,ARTIST,TITLE,LAST_UPDATED,VIDEO,AVAILABILITY_DOWNLOAD_DISABLED FROM BEATMAPSET WHERE BEATMAPSET_ID = (SELECT BEATMAPSET_ID FROM BEATMAP WHERE BEATMAP_ID = ?);`, request.MapId)

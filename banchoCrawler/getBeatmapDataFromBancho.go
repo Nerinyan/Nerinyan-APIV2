@@ -1,4 +1,4 @@
-package banchoCroller
+package banchoCrawler
 
 import (
 	"database/sql"
