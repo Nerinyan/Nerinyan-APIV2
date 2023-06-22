@@ -43,7 +43,7 @@ func Search(c echo.Context) (err error) {
 	//===============================================================================================
 	// 맵셋 조건
 	if params.Ranked != "all" {
-		setQuery.Where("MS.RANKED IN ?", utils.NotInMapFindDefault(ranked, params.Ranked))
+		setQuery.Where("MS.RANKED IN ?", utils.NotInMapFindAllAppendDefault(ranked, utils.SplitTrimLower(params.Ranked, ",")))
 	}
 	if !params.getNsfw() {
 		setQuery.Where("MS.NSFW = ?", false)
