@@ -515,9 +515,16 @@ func updateSearchBeatmaps(data []osu.BeatmapSetsIN) (err error) {
 
 	db.InsertQueueChannel <- db.ExecQueue{
 		//삭제된맵 삭제
-		Query: `/* SOFT DELETE MAP */ UPDATE BEATMAP SET DELETED_AT = CURRENT_TIMESTAMP WHERE  BEATMAPSET_ID IN  @mapSets AND BEATMAP_ID NOT IN @maps;`,
-		Args:  []any{sql.Named("mapSets", beatmapSets), sql.Named("maps", beatmaps)},
+		Query: ` /* SOFT DELETE MAP */ UPDATE BEATMAP SET DELETED_AT = CURRENT_TIMESTAMP 
+                      WHERE  BEATMAPSET_ID IN (
+					      SELECT MS.BEATMAPSET_ID FROM BEATMAPSET MS LEFT JOIN BEATMAP M on MS.BEATMAPSET_ID = M.BEATMAPSET_ID
+						WHERE TRUE
+						  AND MS.BEATMAPSET_ID IN @mapSets
+                          AND MS.DELETED_AT IS NULL
+						  AND M.DELETED_AT IS NULL
+						GROUP BY M.BEATMAPSET_ID HAVING COUNT(1) < 1
+);`,
+		Args: []any{sql.Named("mapSets", beatmapSets)},
 	}
-
 	return
 }
