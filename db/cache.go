@@ -3,8 +3,8 @@ package db
 import (
 	"github.com/Nerinyan/Nerinyan-APIV2/osu"
 	"github.com/Nerinyan/Nerinyan-APIV2/utils"
-	"github.com/dchest/stemmer/porter2"
 	"github.com/pterm/pterm"
+	"github.com/surgebase/porter2"
 	"regexp"
 	"strconv"
 	"strings"
@@ -166,7 +166,7 @@ func splitString(input string) (ss []string) {
 		if s == "" || s == " " {
 			continue
 		}
-		ss = append(ss, s, porter2.Stemmer.Stem(s))
+		ss = append(ss, s, porter2.Stem(s))
 	}
 	return
 }
@@ -181,6 +181,7 @@ func findRepeats(s []string) (res []string) {
 	}
 	return
 }
+
 func findRepeat(s string) []string {
 	var result []string
 	checkMap := make(map[string]int)
