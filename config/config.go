@@ -14,9 +14,9 @@ type config struct {
 	Debug        bool     `json:"debug"`
 	Discord      struct {
 		Webhook struct {
-			Startup  string `json:"startup"`
-			Info  string `json:"info"`
-			Error string `json:"error"`
+			Startup string `json:"startup"`
+			Info    string `json:"info"`
+			Error   string `json:"error"`
 		} `json:"webhook"`
 	} `json:"discord"`
 	Sql struct {
@@ -43,6 +43,9 @@ type config struct {
 			} `json:"graveyard_asc"`
 		} `json:"beatmapUpdate"`
 	} `json:"osu"`
+	Log struct {
+		Crawler bool `json:"crawler"`
+	} `json:"log"`
 }
 
 var Config config

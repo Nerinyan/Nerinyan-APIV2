@@ -1,4 +1,4 @@
-package banchoCroller
+package banchoCrawler
 
 import (
 	"database/sql"
@@ -272,7 +272,9 @@ func getUpdatedMapAsc() {
 }
 
 func stdGETBancho(url string, str interface{}) (err error) {
-	pterm.Info.Printfln("%s | %-50s | URL : %s", time.Now().Format("15:04:05.000"), pterm.Yellow("BANCHO CRAWLER"), url)
+	if config.Config.Log.Crawler {
+		pterm.Info.Printfln("%s | %-50s | URL : %s", time.Now().Format("15:04:05.000"), pterm.Yellow("BANCHO CRAWLER"), url)
+	}
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", url, nil)
 
@@ -318,9 +320,16 @@ func updateMapset(s *osu.BeatmapSetsIN) {
 
 	r := *s.Ratings
 
-	db.InsertQueueChannel <- db.ExecQueue{ //DB 큐에 전송
+	db.InsertQueueChannel <- db.ExecQueue{
+		//DB 큐에 전송
 		Query: UpsertBeatmapSet,
-		Args:  []any{s.Id, s.Artist, s.ArtistUnicode, s.Creator, s.FavouriteCount, *s.Hype.Current, *s.Hype.Required, s.Nsfw, s.PlayCount, s.Source, s.Status, s.Title, s.TitleUnicode, s.UserId, s.Video, s.Availability.DownloadDisabled, s.Availability.MoreInformation, s.Bpm, s.CanBeHyped, s.DiscussionEnabled, s.DiscussionLocked, s.IsScoreable, s.LastUpdated, s.LegacyThreadUrl, s.NominationsSummary.Current, s.NominationsSummary.Required, s.Ranked, s.RankedDate, s.Storyboard, s.SubmittedDate, s.Tags, s.HasFavourited, s.Description.Description, s.Genre.Id, s.Genre.Name, s.Language.Id, s.Language.Name, fmt.Sprintf("%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d", r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8], r[9], r[10])},
+		Args: []any{
+			s.Id, s.Artist, s.ArtistUnicode, s.Creator, s.FavouriteCount, *s.Hype.Current, *s.Hype.Required, s.Nsfw, s.PlayCount, s.Source, s.Status, s.Title, s.TitleUnicode, s.UserId, s.Video, s.Availability.DownloadDisabled,
+			s.Availability.MoreInformation, s.Bpm, s.CanBeHyped, s.DiscussionEnabled, s.DiscussionLocked, s.IsScoreable, s.LastUpdated, s.LegacyThreadUrl, s.NominationsSummary.Current, s.NominationsSummary.Required, s.Ranked, s.RankedDate,
+			s.DeletedAt,
+			s.Storyboard, s.SubmittedDate, s.Tags, s.HasFavourited, s.Description.Description, s.Genre.Id, s.Genre.Name, s.Language.Id, s.Language.Name,
+			fmt.Sprintf("%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d", r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8], r[9], r[10]),
+		},
 	}
 	//_, err := db.Maria.Exec(UpsertBeatmapSet, s.Id, s.Artist, s.ArtistUnicode, s.Creator, s.FavouriteCount, s.Hype.Current, s.Hype.Required, s.Nsfw, s.PlayCount, s.Source, s.Status, s.Title, s.TitleUnicode, s.UserId, s.Video, s.Availability.DownloadDisabled, s.Availability.MoreInformation, s.Bpm, s.CanBeHyped, s.DiscussionEnabled, s.DiscussionLocked, s.IsScoreable, s.LastUpdated, s.LegacyThreadUrl, s.NominationsSummary.Current, s.NominationsSummary.Required, s.Ranked, s.RankedDate, s.Storyboard, s.SubmittedDate, s.Tags, s.HasFavourited, s.Description.Description, s.Genre.Id, s.Genre.Name, s.Language.Id, s.Language.Name, fmt.Sprintf("%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d", r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8], r[9], r[10]))
 	//if err != nil {
@@ -345,7 +354,8 @@ func updateMapset(s *osu.BeatmapSetsIN) {
 }
 
 func upsertMap(m osu.BeatmapIN) {
-	db.InsertQueueChannel <- db.ExecQueue{ //DB 큐에 전송
+	db.InsertQueueChannel <- db.ExecQueue{
+		//DB 큐에 전송
 		Query: UpsertBeatmap,
 		Args: []any{
 			m.Id, m.BeatmapsetId, m.Mode, m.ModeInt, m.Status, m.Ranked, m.TotalLength, m.MaxCombo, m.DifficultyRating, m.Version, m.Accuracy, m.Ar, m.Cs, m.Drain, m.Bpm, m.Convert,
@@ -387,7 +397,7 @@ const (
 			STATUS,TITLE,TITLE_UNICODE,USER_ID,VIDEO,
 			AVAILABILITY_DOWNLOAD_DISABLED,AVAILABILITY_MORE_INFORMATION,BPM,CAN_BE_HYPED,DISCUSSION_ENABLED,
 			DISCUSSION_LOCKED,IS_SCOREABLE,LAST_UPDATED,LEGACY_THREAD_URL,NOMINATIONS_SUMMARY_CURRENT,
-			NOMINATIONS_SUMMARY_REQUIRED,RANKED,RANKED_DATE,STORYBOARD,SUBMITTED_DATE,
+			NOMINATIONS_SUMMARY_REQUIRED,RANKED,RANKED_DATE,DELETED_AT,STORYBOARD,SUBMITTED_DATE,
 			TAGS,HAS_FAVOURITED )
 		VALUES %s ON DUPLICATE KEY UPDATE 
 			ARTIST = VALUES(ARTIST), ARTIST_UNICODE = VALUES(ARTIST_UNICODE), CREATOR = VALUES(CREATOR), FAVOURITE_COUNT = VALUES(FAVOURITE_COUNT), 
@@ -397,10 +407,10 @@ const (
 			BPM = VALUES(BPM), CAN_BE_HYPED = VALUES(CAN_BE_HYPED), DISCUSSION_ENABLED = VALUES(DISCUSSION_ENABLED), 
 			DISCUSSION_LOCKED = VALUES(DISCUSSION_LOCKED), IS_SCOREABLE = VALUES(IS_SCOREABLE), LAST_UPDATED = VALUES(LAST_UPDATED), 
 			LEGACY_THREAD_URL = VALUES(LEGACY_THREAD_URL), NOMINATIONS_SUMMARY_CURRENT = VALUES(NOMINATIONS_SUMMARY_CURRENT), 
-			NOMINATIONS_SUMMARY_REQUIRED = VALUES(NOMINATIONS_SUMMARY_REQUIRED), RANKED = VALUES(RANKED), RANKED_DATE = VALUES(RANKED_DATE), 
+			NOMINATIONS_SUMMARY_REQUIRED = VALUES(NOMINATIONS_SUMMARY_REQUIRED), RANKED = VALUES(RANKED), RANKED_DATE = VALUES(RANKED_DATE), DELETED_AT= VALUES(DELETED_AT),
 			STORYBOARD = VALUES(STORYBOARD), SUBMITTED_DATE = VALUES(SUBMITTED_DATE), 
 			TAGS = VALUES(TAGS), HAS_FAVOURITED = VALUES(HAS_FAVOURITED);`
-	setValues = `(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)` //30
+	setValues = `(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)` //30
 
 	mapUpsert = `/* UPSERT BEATMAP */
 		INSERT INTO BEATMAP (	
@@ -427,14 +437,14 @@ INSERT INTO BEATMAPSET(
 	STATUS,TITLE,TITLE_UNICODE,USER_ID,VIDEO,
 	AVAILABILITY_DOWNLOAD_DISABLED,AVAILABILITY_MORE_INFORMATION,BPM,CAN_BE_HYPED,DISCUSSION_ENABLED,
 	DISCUSSION_LOCKED,IS_SCOREABLE,LAST_UPDATED,LEGACY_THREAD_URL,NOMINATIONS_SUMMARY_CURRENT,
-	NOMINATIONS_SUMMARY_REQUIRED,RANKED,RANKED_DATE,STORYBOARD,SUBMITTED_DATE,
+	NOMINATIONS_SUMMARY_REQUIRED,RANKED,RANKED_DATE,DELETED_AT,STORYBOARD,SUBMITTED_DATE,
 	TAGS,HAS_FAVOURITED,DESCRIPTION,GENRE_ID,GENRE_NAME,
 	LANGUAGE_ID,LANGUAGE_NAME,RATINGS
 )VALUES(
 	?,?,?,?,?,	?,?,?,?,?,
 	?,?,?,?,?,	?,?,?,?,?,
 	?,?,?,?,?,	?,?,?,?,?,
-	?,?,?,?,?,	?,?,?
+	?,?,?,?,?,	?,?,?,?
 )ON DUPLICATE KEY UPDATE 
 	ARTIST= VALUES(ARTIST), ARTIST_UNICODE= VALUES(ARTIST_UNICODE), CREATOR= VALUES(CREATOR), FAVOURITE_COUNT= VALUES(FAVOURITE_COUNT), 
 	HYPE_CURRENT= VALUES(HYPE_CURRENT), HYPE_REQUIRED= VALUES(HYPE_REQUIRED), NSFW= VALUES(NSFW), PLAY_COUNT= VALUES(PLAY_COUNT), SOURCE= VALUES(SOURCE), 
@@ -443,7 +453,7 @@ INSERT INTO BEATMAPSET(
 	BPM= VALUES(BPM), CAN_BE_HYPED= VALUES(CAN_BE_HYPED), DISCUSSION_ENABLED= VALUES(DISCUSSION_ENABLED), 
 	DISCUSSION_LOCKED= VALUES(DISCUSSION_LOCKED), IS_SCOREABLE= VALUES(IS_SCOREABLE), LAST_UPDATED= VALUES(LAST_UPDATED), LEGACY_THREAD_URL= VALUES(LEGACY_THREAD_URL), 
 	NOMINATIONS_SUMMARY_CURRENT= VALUES(NOMINATIONS_SUMMARY_CURRENT), 	NOMINATIONS_SUMMARY_REQUIRED= VALUES(NOMINATIONS_SUMMARY_REQUIRED), 
-	RANKED= VALUES(RANKED), RANKED_DATE= VALUES(RANKED_DATE), STORYBOARD= VALUES(STORYBOARD), SUBMITTED_DATE= VALUES(SUBMITTED_DATE), 
+	RANKED= VALUES(RANKED), RANKED_DATE= VALUES(RANKED_DATE), DELETED_AT= VALUES(DELETED_AT), STORYBOARD= VALUES(STORYBOARD), SUBMITTED_DATE= VALUES(SUBMITTED_DATE), 
 	TAGS= VALUES(TAGS), HAS_FAVOURITED= VALUES(HAS_FAVOURITED), DESCRIPTION= VALUES(DESCRIPTION), GENRE_ID= VALUES(GENRE_ID), GENRE_NAME= VALUES(GENRE_NAME), 
 	LANGUAGE_ID= VALUES(LANGUAGE_ID), LANGUAGE_NAME= VALUES(LANGUAGE_NAME), RATINGS= VALUES(RATINGS)
 ;
@@ -476,27 +486,53 @@ func updateSearchBeatmaps(data []osu.BeatmapSetsIN) (err error) {
 	for _, s := range data {
 
 		beatmapSets = append(beatmapSets, s.Id)
-		setInsertBuf = append(setInsertBuf, s.Id, s.Artist, s.ArtistUnicode, s.Creator, s.FavouriteCount, s.Nsfw, s.PlayCount, s.Source, s.Status, s.Title, s.TitleUnicode, s.UserId, s.Video, s.Availability.DownloadDisabled, s.Availability.MoreInformation, s.Bpm, s.CanBeHyped, s.DiscussionEnabled, s.DiscussionLocked, s.IsScoreable, s.LastUpdated, s.LegacyThreadUrl, s.NominationsSummary.Current, s.NominationsSummary.Required, s.Ranked, s.RankedDate, s.Storyboard, s.SubmittedDate, s.Tags, s.HasFavourited)
+		setInsertBuf = append(
+			setInsertBuf, s.Id, s.Artist, s.ArtistUnicode, s.Creator, s.FavouriteCount, s.Nsfw, s.PlayCount, s.Source, s.Status, s.Title, s.TitleUnicode, s.UserId, s.Video, s.Availability.DownloadDisabled, s.Availability.MoreInformation,
+			s.Bpm, s.CanBeHyped, s.DiscussionEnabled, s.DiscussionLocked, s.IsScoreable, s.LastUpdated, s.LegacyThreadUrl, s.NominationsSummary.Current, s.NominationsSummary.Required, s.Ranked, s.RankedDate, s.DeletedAt, s.Storyboard,
+			s.SubmittedDate,
+			s.Tags, s.HasFavourited,
+		)
 		for _, m := range *s.Beatmaps {
 			beatmaps = append(beatmaps, m.Id)
-			mapInsertBuf = append(mapInsertBuf, m.Id, m.BeatmapsetId, m.Mode, m.ModeInt, m.Status, m.Ranked, m.TotalLength, m.MaxCombo, m.DifficultyRating, m.Version, m.Accuracy, m.Ar, m.Cs, m.Drain, m.Bpm, m.Convert, m.CountCircles, m.CountSliders, m.CountSpinners, m.DeletedAt, m.HitLength, m.IsScoreable, m.LastUpdated, m.Passcount, m.Playcount, m.Checksum, m.UserId)
+			mapInsertBuf = append(
+				mapInsertBuf, m.Id, m.BeatmapsetId, m.Mode, m.ModeInt, m.Status, m.Ranked, m.TotalLength, m.MaxCombo, m.DifficultyRating, m.Version, m.Accuracy, m.Ar, m.Cs, m.Drain, m.Bpm, m.Convert, m.CountCircles, m.CountSliders,
+				m.CountSpinners, m.DeletedAt, m.HitLength, m.IsScoreable, m.LastUpdated, m.Passcount, m.Playcount, m.Checksum, m.UserId,
+			)
 		}
 	}
 	//맵셋
-	db.InsertQueueChannel <- db.ExecQueue{ //맵셋
+	db.InsertQueueChannel <- db.ExecQueue{
+		//맵셋
 		Query: fmt.Sprintf(setUpsert, buildSqlValues(setValues, len(beatmapSets))),
 		Args:  setInsertBuf,
 	}
 
-	db.InsertQueueChannel <- db.ExecQueue{ //맵
+	db.InsertQueueChannel <- db.ExecQueue{
+		//맵
 		Query: fmt.Sprintf(mapUpsert, buildSqlValues(mapValues, len(beatmaps))),
 		Args:  mapInsertBuf,
 	}
-
-	db.InsertQueueChannel <- db.ExecQueue{ //삭제된맵 삭제
-		Query: `/* SOFT DELETE MAP */ UPDATE BEATMAP SET DELETED_AT = current_timestamp WHERE  BEATMAPSET_ID IN  @mapSets AND BEATMAP_ID NOT IN @maps;`,
+	db.InsertQueueChannel <- db.ExecQueue{
+		//삭제된맵 삭제
+		Query: `/* SOFT DELETE MAP */ UPDATE BEATMAP SET DELETED_AT = CURRENT_TIMESTAMP WHERE  BEATMAPSET_ID IN  @mapSets AND BEATMAP_ID NOT IN @maps AND DELETED_AT IS NULL;`,
 		Args:  []any{sql.Named("mapSets", beatmapSets), sql.Named("maps", beatmaps)},
 	}
 
+	db.InsertQueueChannel <- db.ExecQueue{
+		//삭제된맵 삭제
+		Query: ` /* SOFT DELETE MAPSET */ 
+UPDATE BEATMAPSET SET DELETED_AT = CURRENT_TIMESTAMP 
+WHERE BEATMAPSET_ID IN ( 
+    SELECT MS.BEATMAPSET_ID 
+      FROM BEATMAPSET MS 
+      LEFT JOIN BEATMAP M on MS.BEATMAPSET_ID = M.BEATMAPSET_ID
+    WHERE TRUE
+      AND M.BEATMAPSET_ID IN @mapSets
+      AND MS.DELETED_AT IS NULL
+      AND M.DELETED_AT IS NULL
+    GROUP BY M.BEATMAPSET_ID HAVING COUNT(1) < 1
+);`,
+		Args: []any{sql.Named("mapSets", beatmapSets)},
+	}
 	return
 }

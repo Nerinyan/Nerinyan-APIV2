@@ -46,6 +46,11 @@ type footer struct {
 //}
 
 func DiscordError(v *bodyStruct.ErrorStruct) {
+	defer func() {
+		if r := recover(); r != nil {
+			pterm.Error.WithShowLineNumber().Printfln("%+v", r)
+		}
+	}()
 	now := time.Now().UTC().Format("2006-01-02T15:04:05.000Z")
 
 	body := discordWebhookBody{
@@ -65,7 +70,7 @@ func DiscordError(v *bodyStruct.ErrorStruct) {
 
 	resp, err := http.Post(config.Config.Discord.Webhook.Error, "application/json", bytes.NewReader(*utils.ToJsonString(body)))
 	if err != nil {
-		pterm.Error.Println(err)
+		pterm.Error.WithShowLineNumber().Printfln("%+v", err)
 	}
 	if !resp.Close {
 		_ = resp.Body.Close()

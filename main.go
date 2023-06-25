@@ -1,46 +1,37 @@
 package main
 
 import (
-	"github.com/Nerinyan/Nerinyan-APIV2/banchoCroller"
+	"github.com/Nerinyan/Nerinyan-APIV2/banchoCrawler"
 	"github.com/Nerinyan/Nerinyan-APIV2/config"
 	"github.com/Nerinyan/Nerinyan-APIV2/db"
 	"github.com/Nerinyan/Nerinyan-APIV2/logger"
-	"github.com/Nerinyan/Nerinyan-APIV2/route"
+	"github.com/Nerinyan/Nerinyan-APIV2/middlewareFunc"
+	"github.com/Nerinyan/Nerinyan-APIV2/route/common"
+	"github.com/Nerinyan/Nerinyan-APIV2/route/download"
+	"github.com/Nerinyan/Nerinyan-APIV2/route/search"
 	"github.com/Nerinyan/Nerinyan-APIV2/src"
 	"github.com/Nerinyan/Nerinyan-APIV2/webhook"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/pkg/errors"
 	"github.com/pterm/pterm"
 	"log"
 	"net/http"
-	"runtime"
+	"time"
 )
-
-// TODO DOING DB 테이블 없으면 자동으로 생성하게
-// TODO DOING 로그 디비에 넣을때 어떤 데이터 넣을지.
-// TODO DOING 헤더로 프론트인지 api 인지 구분할수있게
-//  	END   에러 핸들러.
-//  	END   검색엔진 버그 체크하고 쿼리문 수정
-//  	END   비트맵 반쵸에서 다운로드중에 클라이언트가 취소해도 서버는 계속 다운로드.
-// TODO DOING 서버간 비트맵파일 해시값 비교해서 서로 다른경우 둘다 서버에서 삭제.
-// TODO DOING 서버끼리 서로 비트맵파일 동기화 시킬수 있게
-// TODO DOING 반쵸 비트맵 다운로드 제한 10분간 약 200건 10분 정지. (429 too many request) => 10분 내 100건 봇 감지 알고리즘
-// TODO DOING 서버 자체적으로 10분당 150건 이내만 다운로드 가능하게 셋팅
-// TODO DOING /status에 들어갈 상태값 추가.
 
 func init() {
 	ch := make(chan struct{})
 	config.LoadConfig()
 	src.StartIndex()
 	db.ConnectRDBMS()
-	go banchoCroller.LoadBancho(ch)
+	middlewareFunc.StartHandler()
+	go banchoCrawler.LoadBancho(ch)
 	_ = <-ch
 
 	if config.Config.Debug {
-		//go banchoCroller.UpdateAllPackList()
+		//go banchoCrawler.UpdateAllPackList()
 	} else {
-		go banchoCroller.RunGetBeatmapDataASBancho()
+		go banchoCrawler.RunGetBeatmapDataASBancho()
 	}
 
 }
@@ -49,14 +40,18 @@ func main() {
 	e := echo.New()
 	e.HideBanner = true
 	e.HTTPErrorHandler = func(err error, c echo.Context) {
-		if err != nil {
-			pterm.Error.Printfln("%+v", err)
-			_ = c.String(http.StatusInternalServerError, err.Error())
-		}
+		pterm.Error.WithShowLineNumber().Printfln("%+v", err)
+		_ = c.JSON(
+			http.StatusInternalServerError, map[string]interface{}{
+				"error":      err,
+				"request_id": c.Response().Header().Get("X-Request-Id"),
+				"time":       time.Now(),
+			},
+		)
+
 	}
 
-	e.Renderer = &route.Renderer
-	webhook.DiscordInfoStartUP()
+	e.Renderer = &download.Renderer
 
 	go func() {
 		for {
@@ -67,54 +62,45 @@ func main() {
 	}()
 
 	e.Pre(
-		//middleware.RateLimiter(
-		//	middleware.NewRateLimiterMemoryStoreWithConfig(
-		//		middleware.RateLimiterMemoryStoreConfig{
-		//			Rate:      100,
-		//			Burst:     200,
-		//			ExpiresIn: time.Minute,
-		//		},
-		//	),
-		//),
-
+		//필수 우선순
+		middleware.Recover(),
+		middleware.RequestID(),
 		middleware.RemoveTrailingSlash(),
 		middleware.Logger(),
+		middlewareFunc.RequestConsolLogger(),
+		middleware.RemoveTrailingSlash(),
 
+		//1차 필터
+		middlewareFunc.BlackListHandler(), // 1분주기 갱신
 		middleware.CORSWithConfig(middleware.CORSConfig{AllowOrigins: []string{"*"}, AllowMethods: []string{echo.GET, echo.HEAD, echo.POST}}),
+
+		//2차 필터
+		middleware.RateLimiter(
+			middleware.NewRateLimiterMemoryStoreWithConfig(
+				middleware.RateLimiterMemoryStoreConfig{
+					Rate:      200,
+					Burst:     1000,
+					ExpiresIn: time.Minute,
+				},
+			),
+		),
+
 		//middleware.RateLimiterWithConfig(middleWareFunc.RateLimiterConfig),
-		middleware.RequestID(),
-		middleware.Recover(),
+
 	)
 
 	// docs ============================================================================================================
-	e.GET(
-		"/", func(c echo.Context) error {
-			return c.Redirect(http.StatusPermanentRedirect, `https://nerinyan.stoplight.io/docs/nerinyan-api`)
-		},
-	)
+	e.GET("/", common.Root)
 
 	// 서버상태 체크용 ====================================================================================================
-
-	e.GET("/health", route.Health)
-	e.GET("/robots.txt", route.Robots)
-	e.GET(
-		"/status", func(c echo.Context) error {
-			return c.JSON(
-				http.StatusOK, map[string]interface{}{
-					"CpuThreadCount":        runtime.NumCPU(),
-					"RunningGoroutineCount": runtime.NumGoroutine(),
-					"apiCount":              *banchoCroller.ApiCount,
-					"fileCount":             len(src.FileList),
-					"fileSize":              src.FileSizeToString,
-				},
-			)
-		},
-	)
+	e.GET("/health", common.Health)
+	e.GET("/robots.txt", common.Robots)
+	e.GET("/status", common.Status)
 
 	// 맵 파일 다운로드 ===================================================================================================
-	e.GET("/d/:setId", route.DownloadBeatmapSet, route.Embed)
-	e.GET("/beatmap/:mapId", route.DownloadBeatmapSet)
-	e.GET("/beatmapset/:setId", route.DownloadBeatmapSet)
+	e.GET("/d/:setId", download.DownloadBeatmapSet, download.Embed)
+	e.GET("/beatmap/:mapId", download.DownloadBeatmapSet)
+	e.GET("/beatmapset/:setId", download.DownloadBeatmapSet)
 	//TODO 맵아이디, 맵셋아이디 지원
 
 	// 비트맵 BG  =========================================================================================================
@@ -126,19 +112,18 @@ func main() {
 	)
 
 	// 비트맵 리스트 검색용 ================================================================================================
-	e.GET("/search", route.Search)
-	e.POST("/search", route.Search)
+	e.GET("/search", search.Search)
+	e.POST("/search", search.Search)
+
+	// 비트맵 정보 검색
+	e.GET("/search/s/:setId", search.SearchS)
+	e.GET("/search/b/:mapId", search.SearchB)
 
 	// 개발중 || 테스트중 ===================================================================================================
-	e.GET(
-		"/test", func(c echo.Context) error {
-			return errors.New("zz")
-			//return errors.New(utils.GetFileLine() + "SEBAL ERROR")
-		},
-	)
 
 	// ====================================================================================================================
 	pterm.Info.Println("ECHO STARTED AT", config.Config.Port)
+	webhook.DiscordInfoStartUP()
 	e.Logger.Fatal(e.Start(":" + config.Config.Port))
 
 }

@@ -32,7 +32,7 @@ type BeatmapSetsIN struct {
 	UserId       int     `json:"user_id"`
 	Video        bool    `json:"video"`
 	Availability *struct {
-		DownloadDisabled *bool    `json:"download_disabled"`
+		DownloadDisabled *bool   `json:"download_disabled"`
 		MoreInformation  *string `json:"more_information"`
 	} `json:"availability"`
 	Bpm                float64    `json:"bpm"`
@@ -48,6 +48,7 @@ type BeatmapSetsIN struct {
 	} `json:"nominations_summary"`
 	Ranked        int          `json:"ranked"`
 	RankedDate    *time.Time   `json:"ranked_date"`
+	DeletedAt     *time.Time   `json:"deleted_at"`
 	Storyboard    bool         `json:"storyboard"`
 	SubmittedDate *time.Time   `json:"submitted_date"`
 	Tags          *string      `json:"tags"`
@@ -107,21 +108,21 @@ type BeatmapSetsOUT struct {
 		DownloadDisabled *bool   `json:"download_disabled"`
 		MoreInformation  *string `json:"more_information"`
 	} `json:"availability"`
-	Bpm                *string `json:"bpm"`
-	CanBeHyped         *bool   `json:"can_be_hyped"`
-	DiscussionEnabled  *bool   `json:"discussion_enabled"`
-	DiscussionLocked   *bool   `json:"discussion_locked"`
-	IsScoreable        *bool   `json:"is_scoreable"`
-	LastUpdated        *string `json:"last_updated"`
-	LegacyThreadUrl    *string `json:"legacy_thread_url"`
+	Bpm                *string    `json:"bpm"`
+	CanBeHyped         *bool      `json:"can_be_hyped"`
+	DiscussionEnabled  *bool      `json:"discussion_enabled"`
+	DiscussionLocked   *bool      `json:"discussion_locked"`
+	IsScoreable        *bool      `json:"is_scoreable"`
+	LastUpdated        *time.Time `json:"last_updated"`
+	LegacyThreadUrl    *string    `json:"legacy_thread_url"`
 	NominationsSummary struct {
 		Current  *int `json:"current"`
 		Required *int `json:"required"`
 	} `json:"nominations_summary"`
 	Ranked        int          `json:"ranked"`
-	RankedDate    *string      `json:"ranked_date"`
+	RankedDate    *time.Time   `json:"ranked_date"`
 	Storyboard    *bool        `json:"storyboard"`
-	SubmittedDate *string      `json:"submitted_date"`
+	SubmittedDate *time.Time   `json:"submitted_date"`
 	Tags          *string      `json:"tags"`
 	HasFavourited *bool        `json:"has_favourited"`
 	Beatmaps      []BeatmapOUT `json:"beatmaps"`
