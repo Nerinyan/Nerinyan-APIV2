@@ -19,14 +19,6 @@ import (
 	"time"
 )
 
-// TODO DOING DB 테이블 없으면 자동으로 생성하게
-// TODO DOING 헤더로 프론트인지 api 인지 구분할수있게
-// TODO DOING 서버간 비트맵파일 해시값 비교해서 서로 다른경우 둘다 서버에서 삭제.
-// TODO DOING 서버끼리 서로 비트맵파일 동기화 시킬수 있게
-// TODO DOING 반쵸 비트맵 다운로드 제한 10분간 약 200건 10분 정지. (429 too many request) => 10분 내 100건 봇 감지 알고리즘
-// TODO DOING 서버 자체적으로 10분당 150건 이내만 다운로드 가능하게 셋팅
-// TODO DOING /status에 들어갈 상태값 추가.
-
 func init() {
 	ch := make(chan struct{})
 	config.LoadConfig()
@@ -122,6 +114,10 @@ func main() {
 	// 비트맵 리스트 검색용 ================================================================================================
 	e.GET("/search", search.Search)
 	e.POST("/search", search.Search)
+
+	// 비트맵 정보 검색
+	e.GET("/search/s/:setId", search.SearchS)
+	e.GET("/search/b/:mapId", search.SearchB)
 
 	// 개발중 || 테스트중 ===================================================================================================
 

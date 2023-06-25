@@ -88,9 +88,9 @@ var (
 		"t":        1 << 3,
 		"checksum": 1 << 4, // 16
 		"cks":      1 << 4,
-		"mapId":    1 << 5, // 32
+		"mapid":    1 << 5, // 32
 		"m":        1 << 5,
-		"setId":    1 << 6, // 64
+		"setid":    1 << 6, // 64
 		"s":        1 << 6,
 		"default":  0xFFFF, // all
 	}
