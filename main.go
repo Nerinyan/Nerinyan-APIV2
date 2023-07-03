@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/Nerinyan/Nerinyan-APIV2/banchoCrawler"
 	"github.com/Nerinyan/Nerinyan-APIV2/config"
-	"github.com/Nerinyan/Nerinyan-APIV2/db"
+	"github.com/Nerinyan/Nerinyan-APIV2/db/mariadb"
 	"github.com/Nerinyan/Nerinyan-APIV2/logger"
 	"github.com/Nerinyan/Nerinyan-APIV2/middlewareFunc"
 	"github.com/Nerinyan/Nerinyan-APIV2/route/common"
@@ -23,7 +23,7 @@ func init() {
 	ch := make(chan struct{})
 	config.LoadConfig()
 	src.StartIndex()
-	db.ConnectRDBMS()
+	mariadb.Connect()
 	middlewareFunc.StartHandler()
 	go banchoCrawler.LoadBancho(ch)
 	_ = <-ch

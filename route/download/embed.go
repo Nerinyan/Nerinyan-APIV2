@@ -4,7 +4,7 @@ import (
 	"embed"
 	_ "embed"
 	"fmt"
-	"github.com/Nerinyan/Nerinyan-APIV2/db"
+	"github.com/Nerinyan/Nerinyan-APIV2/db/mariadb"
 	"github.com/labstack/echo/v4"
 	"github.com/pterm/pterm"
 	"html/template"
@@ -89,8 +89,8 @@ func Embed(next echo.HandlerFunc) echo.HandlerFunc {
 		setId := c.Param("setId")
 		var set setEmbed
 		var Map []mapEmbed
-		db.Gorm.Raw("SELECT TITLE, CREATOR, RANKED, BPM, FAVOURITE_COUNT FROM BEATMAPSET WHERE BEATMAPSET_ID = ?", setId).Scan(&set)
-		db.Gorm.Raw("SELECT MODE_INT, VERSION, DIFFICULTY_RATING, TOTAL_LENGTH, CS, AR FROM BEATMAP WHERE DELETED_AT IS NULL AND BEATMAPSET_ID = ? ORDER BY DIFFICULTY_RATING", setId).Scan(&Map)
+		mariadb.Mariadb.Raw("SELECT TITLE, CREATOR, RANKED, BPM, FAVOURITE_COUNT FROM BEATMAPSET WHERE BEATMAPSET_ID = ?", setId).Scan(&set)
+		mariadb.Mariadb.Raw("SELECT MODE_INT, VERSION, DIFFICULTY_RATING, TOTAL_LENGTH, CS, AR FROM BEATMAP WHERE DELETED_AT IS NULL AND BEATMAPSET_ID = ? ORDER BY DIFFICULTY_RATING", setId).Scan(&Map)
 		pterm.Info.Println(set)
 		pterm.Info.Println(Map)
 		pterm.Info.Println("================")

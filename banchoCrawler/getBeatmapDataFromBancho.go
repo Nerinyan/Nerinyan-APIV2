@@ -41,9 +41,6 @@ func RunGetBeatmapDataASBancho() {
 	go func() {
 		for {
 			time.Sleep(time.Minute)
-			if db.Maria.Ping() != nil {
-				continue
-			}
 			apiCountReset()
 			go config.Config.Save()
 		}

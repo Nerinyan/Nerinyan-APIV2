@@ -1,7 +1,7 @@
 package search
 
 import (
-	"github.com/Nerinyan/Nerinyan-APIV2/db"
+	"github.com/Nerinyan/Nerinyan-APIV2/db/mariadb"
 	"github.com/Nerinyan/Nerinyan-APIV2/db/mariadb/entity"
 	"github.com/labstack/echo/v4"
 	"github.com/pterm/pterm"
@@ -9,7 +9,7 @@ import (
 )
 
 func SearchB(c echo.Context) (err error) { // http://127.0.0.1/search/s/123456
-	query := db.Gorm.Select("M.*").Table("BEATMAP M").
+	query := mariadb.Mariadb.Select("M.*").Table("BEATMAP M").
 		Where("M.DELETED_AT IS NULL").
 		Where("M.BEATMAP_ID = ?", c.Param("mapId"))
 

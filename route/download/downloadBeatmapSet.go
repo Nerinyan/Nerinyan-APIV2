@@ -6,7 +6,7 @@ import (
 	"github.com/Nerinyan/Nerinyan-APIV2/banchoCrawler"
 	"github.com/Nerinyan/Nerinyan-APIV2/bodyStruct"
 	"github.com/Nerinyan/Nerinyan-APIV2/config"
-	"github.com/Nerinyan/Nerinyan-APIV2/db"
+	"github.com/Nerinyan/Nerinyan-APIV2/db/mariadb"
 	"github.com/Nerinyan/Nerinyan-APIV2/db/mariadb/entity"
 	"github.com/Nerinyan/Nerinyan-APIV2/logger"
 	"github.com/Nerinyan/Nerinyan-APIV2/src"
@@ -96,9 +96,9 @@ func DownloadBeatmapSet(c echo.Context) (err error) {
 	}
 	var beatmap4d entity.BanchoBeatmaSetForDownloaderEntity
 	if request.SetId != 0 {
-		err = db.Gorm.Find(&beatmap4d, request.SetId).Error
+		err = mariadb.Mariadb.Find(&beatmap4d, request.SetId).Error
 	} else if request.MapId != 0 {
-		err = db.Gorm.Find(&beatmap4d, "BEATMAPSET_ID = (SELECT BEATMAPSET_ID FROM BEATMAP WHERE BEATMAP_ID = ?)", request.MapId).Error
+		err = mariadb.Mariadb.Find(&beatmap4d, "BEATMAPSET_ID = (SELECT BEATMAPSET_ID FROM BEATMAP WHERE BEATMAP_ID = ?)", request.MapId).Error
 	} else {
 		return errors.New("set id & map id not found")
 	}

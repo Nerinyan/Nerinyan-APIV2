@@ -2,6 +2,7 @@ package mariadb
 
 import (
 	"github.com/Nerinyan/Nerinyan-APIV2/config"
+	"github.com/Nerinyan/Nerinyan-APIV2/utils"
 	"github.com/pterm/pterm"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -17,7 +18,7 @@ func Connect() {
 		mysql.Open(config.Config.Sql.Url), &gorm.Config{
 			AllowGlobalUpdate: true,
 			//                                        config.Env.Debug ? debug : error
-			Logger:                                   logger.Default.LogMode(logger.Info),
+			Logger:                                   logger.Default.LogMode(utils.TernaryOperator(config.Config.Debug, logger.Info, logger.Error)),
 			CreateBatchSize:                          100,
 			DisableForeignKeyConstraintWhenMigrating: true,
 		},

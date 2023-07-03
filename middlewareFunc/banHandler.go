@@ -1,7 +1,7 @@
 package middlewareFunc
 
 import (
-	"github.com/Nerinyan/Nerinyan-APIV2/db"
+	"github.com/Nerinyan/Nerinyan-APIV2/db/mariadb"
 	"github.com/Nerinyan/Nerinyan-APIV2/db/mariadb/entity"
 	"github.com/labstack/echo/v4"
 	"github.com/pterm/pterm"
@@ -26,7 +26,7 @@ func StartHandler() {
 	go func() {
 		for ; ; <-ticker.C {
 			var blacklists []entity.BlacklistEntity
-			err := db.Gorm.Where("EXPIRED_AT > ?", time.Now()).Find(&blacklists).Error
+			err := mariadb.Mariadb.Where("EXPIRED_AT > ?", time.Now()).Find(&blacklists).Error
 			if err != nil {
 				pterm.Error.WithShowLineNumber().Println(err)
 				continue

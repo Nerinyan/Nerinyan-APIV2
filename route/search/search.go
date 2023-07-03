@@ -2,7 +2,7 @@ package search
 
 import (
 	"database/sql"
-	"github.com/Nerinyan/Nerinyan-APIV2/db"
+	"github.com/Nerinyan/Nerinyan-APIV2/db/mariadb"
 	"github.com/Nerinyan/Nerinyan-APIV2/db/mariadb/entity"
 	"github.com/Nerinyan/Nerinyan-APIV2/utils"
 	"github.com/labstack/echo/v4"
@@ -44,7 +44,7 @@ func Search(c echo.Context) (err error) {
 	text := splitString(params.Text)
 	text = utils.MakeArrayUnique(&text)
 
-	setQuery := db.Gorm.Select("MS.*").Table("BEATMAPSET MS").Where("MS.DELETED_AT IS NULL")
+	setQuery := mariadb.Mariadb.Select("MS.*").Table("BEATMAPSET MS").Where("MS.DELETED_AT IS NULL")
 	//===============================================================================================
 	// 맵셋 조건
 	if params.Ranked != "all" {
@@ -64,7 +64,7 @@ func Search(c echo.Context) (err error) {
 	}
 	//===============================================================================================
 	// 맵 조건
-	mapQuery := db.Gorm.Select("M.BEATMAPSET_ID").Table("BEATMAP M").Where("M.DELETED_AT IS NULL")
+	mapQuery := mariadb.Mariadb.Select("M.BEATMAPSET_ID").Table("BEATMAP M").Where("M.DELETED_AT IS NULL")
 	useMap := false
 	if params.TotalLength.Min != 0 {
 		mapQuery.Where("? <= M.TOTAL_LENGTH", params.TotalLength.Min)

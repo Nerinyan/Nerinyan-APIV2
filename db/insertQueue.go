@@ -2,6 +2,7 @@ package db
 
 import (
 	"fmt"
+	"github.com/Nerinyan/Nerinyan-APIV2/db/mariadb"
 	"github.com/pkg/errors"
 	"github.com/pterm/pterm"
 	"regexp"
@@ -35,7 +36,7 @@ func init() {
 
 			for ins := range InsertQueueChannel {
 				st := time.Now().UnixMilli()
-				result := Gorm.Exec(ins.Query, ins.Args...)
+				result := mariadb.Mariadb.Exec(ins.Query, ins.Args...)
 				err := result.Error
 				ins := ins
 
