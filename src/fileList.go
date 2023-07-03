@@ -1,10 +1,9 @@
 package src
 
 import (
-	"fmt"
 	"github.com/Nerinyan/Nerinyan-APIV2/config"
+	"github.com/Nerinyan/Nerinyan-APIV2/utils"
 	"github.com/pterm/pterm"
-	"io/ioutil"
 	"os"
 	"runtime"
 	"strconv"
@@ -35,17 +34,21 @@ func FileListUpdate() {
 	var err error
 
 	checkDir()
-	files, err := ioutil.ReadDir(config.Config.TargetDir)
+	dirs, err := os.ReadDir(config.Config.TargetDir)
 	if err != nil {
 		return
 	}
 
 	tmp := make(FileIndex)
 	fileSize = 0
-	for _, file := range files {
-		if sid, err := strconv.Atoi(strings.Replace(file.Name(), ".osz", "", -1)); err == nil {
-			tmp[sid] = file.ModTime()
-			fileSize += uint64(file.Size())
+	for _, dir := range dirs {
+		fi, err := dir.Info()
+		if err != nil || dir.IsDir() {
+			continue
+		}
+		if sid, err := strconv.Atoi(strings.Replace(dir.Name(), ".osz", "", -1)); err == nil {
+			tmp[sid] = fi.ModTime()
+			fileSize += uint64(fi.Size())
 		}
 	}
 	FileSizeToString = totalFileSize()
@@ -60,30 +63,9 @@ func FileListUpdate() {
 }
 
 func totalFileSize() (s string) {
-	if goos == "windows" {
-		if fileSize > 1099511627776 { //TB
-			return fmt.Sprintf("%d%s", fileSize/1099511627776, "TB")
-		} else if fileSize > 1073741824 { //GB
-			return fmt.Sprintf("%d%s", fileSize/1073741824, "GB")
-		} else if fileSize > 1048576 { //MB
-			return fmt.Sprintf("%d%s", fileSize/1048576, "MB")
-		} else if fileSize > 1024 { //KB
-			return fmt.Sprintf("%d%s", fileSize/1024, "KB")
-		}
-	} else {
-		if fileSize > 1000000000000 { //TB
-			return fmt.Sprintf("%d%s", fileSize/1000000000000, "TB")
-		} else if fileSize > 1000000000 { //GB
-			return fmt.Sprintf("%d%s", fileSize/1000000000, "GB")
-		} else if fileSize > 1000000 { //MB
-			return fmt.Sprintf("%d%s", fileSize/1000000, "MB")
-		} else if fileSize > 1000 { //KB
-			return fmt.Sprintf("%d%s", fileSize/1000, "KB")
-		}
-	}
-
-	return fmt.Sprintf("%d%s", fileSize, "B")
+	return utils.ToHumanDataSize(fileSize)
 }
+
 func checkDir() {
 	if _, e := os.Stat(config.Config.TargetDir); os.IsNotExist(e) {
 		err := os.MkdirAll(config.Config.TargetDir, 666)
