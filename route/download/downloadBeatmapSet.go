@@ -105,7 +105,7 @@ func DownloadBeatmapSet(c echo.Context) (err error) {
 	if err != nil {
 		return errors.New(err.Error())
 	}
-	pterm.Info.Println(beatmap4d)
+
 	go banchoCrawler.ManualUpdateBeatmapSet(beatmap4d.BeatmapsetId)
 
 	if beatmap4d.AvailabilityDownloadDisabled {
