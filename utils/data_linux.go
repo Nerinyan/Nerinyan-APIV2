@@ -10,7 +10,7 @@ const (
 	PB = KB * KB * KB * KB * KB
 )
 
-func ToHumanDataSize(bytes int64) string {
+func ToHumanDataSize(bytes uint64) string {
 	var unit string
 	var size float64
 
