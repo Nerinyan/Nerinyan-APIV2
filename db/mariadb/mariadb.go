@@ -9,9 +9,9 @@ import (
 	"time"
 )
 
-var Gorm *gorm.DB
+var Mariadb *gorm.DB
 
-func ConnectRDBMS() {
+func Connect() {
 
 	orm, err := gorm.Open(
 		mysql.Open(config.Config.Sql.Url), &gorm.Config{
@@ -23,7 +23,7 @@ func ConnectRDBMS() {
 		},
 	)
 
-	if Gorm = orm; err != nil || orm == nil {
+	if Mariadb = orm; err != nil || orm == nil {
 		pterm.Fatal.WithShowLineNumber().Println("Gorm Connect Fail", err)
 		panic(err)
 	}

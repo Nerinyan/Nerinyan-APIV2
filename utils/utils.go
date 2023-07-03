@@ -32,15 +32,14 @@ func StringRepeatArray(s string, count int) (arr []string) {
 	return
 }
 
-func TernaryOperator[V any](tf bool, T, F V) V {
+func TernaryOperator[V any](tf bool, t, f V) V {
 	if tf {
-		return T
+		return t
 	}
-	return F
+	return f
 }
 
 func MakeArrayUnique[T comparable](array *[]T) (res []T) {
-
 	keys := make(map[T]struct{})
 	for _, s := range *array {
 		keys[s] = struct{}{}

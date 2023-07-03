@@ -52,7 +52,6 @@ func main() {
 	}
 
 	e.Renderer = &download.Renderer
-
 	go func() {
 		for {
 			<-logger.Ch

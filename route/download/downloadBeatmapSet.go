@@ -2,12 +2,12 @@ package download
 
 import (
 	"bytes"
-	"database/sql"
 	"fmt"
 	"github.com/Nerinyan/Nerinyan-APIV2/banchoCrawler"
 	"github.com/Nerinyan/Nerinyan-APIV2/bodyStruct"
 	"github.com/Nerinyan/Nerinyan-APIV2/config"
 	"github.com/Nerinyan/Nerinyan-APIV2/db"
+	"github.com/Nerinyan/Nerinyan-APIV2/db/mariadb/entity"
 	"github.com/Nerinyan/Nerinyan-APIV2/logger"
 	"github.com/Nerinyan/Nerinyan-APIV2/src"
 	"github.com/labstack/echo/v4"
@@ -94,55 +94,35 @@ func DownloadBeatmapSet(c echo.Context) (err error) {
 	if request.NoBg == true || request.NoHitsound == true || request.NoStoryboard == true {
 		return c.Redirect(http.StatusPermanentRedirect, redirecturl)
 	}
-
-	var row *sql.Row
+	var beatmap4d entity.BanchoBeatmaSetForDownloaderEntity
 	if request.SetId != 0 {
-		go banchoCrawler.ManualUpdateBeatmapSet(request.SetId)
-		row = db.Maria.QueryRow(`SELECT BEATMAPSET_ID,ARTIST,TITLE,LAST_UPDATED,VIDEO,AVAILABILITY_DOWNLOAD_DISABLED FROM BEATMAPSET WHERE BEATMAPSET_ID = ?`, request.SetId)
+		err = db.Gorm.Find(&beatmap4d, request.SetId).Error
 	} else if request.MapId != 0 {
-		row = db.Maria.QueryRow(`SELECT BEATMAPSET_ID,ARTIST,TITLE,LAST_UPDATED,VIDEO,AVAILABILITY_DOWNLOAD_DISABLED FROM BEATMAPSET WHERE BEATMAPSET_ID = (SELECT BEATMAPSET_ID FROM BEATMAP WHERE BEATMAP_ID = ?);`, request.MapId)
+		err = db.Gorm.Find(&beatmap4d, "BEATMAPSET_ID = (SELECT BEATMAPSET_ID FROM BEATMAP WHERE BEATMAP_ID = ?)", request.MapId).Error
 	} else {
 		return errors.New("set id & map id not found")
 	}
-
-	if err = row.Err(); err != nil {
-		if err == sql.ErrNoRows {
-			c.Response().Status = http.StatusNotFound
-			return errors.New("not in database")
-		}
-		return errors.New("database Query error")
+	if err != nil {
+		return errors.New(err.Error())
 	}
+	pterm.Info.Println(beatmap4d)
+	go banchoCrawler.ManualUpdateBeatmapSet(beatmap4d.BeatmapsetId)
 
-	var a struct {
-		Id               string
-		Artist           string
-		Title            string
-		LastUpdated      time.Time
-		Video            bool
-		DownloadDisabled bool
-	}
-
-	if err = row.Scan(&a.Id, &a.Artist, &a.Title, &a.LastUpdated, &a.Video, &a.DownloadDisabled); err != nil {
-		if err == sql.ErrNoRows {
-			return errors.New("not in database")
-		}
-		return errors.New("database Query error")
-	}
-	if a.DownloadDisabled {
+	if beatmap4d.AvailabilityDownloadDisabled {
 		return errors.New("download is disabled from bancho.")
 	}
 
 	url := fmt.Sprintf("https://osu.ppy.sh/api/v2/beatmapsets/%d/download", request.SetId)
-	if a.Video && request.NoVideo {
-		request.SetId *= -1
-		a.Title += " [no video]"
+	if beatmap4d.Video && request.NoVideo {
+		beatmap4d.BeatmapsetId *= -1
+		beatmap4d.Title += " [no video]"
 		url += "?noVideo=1"
 	}
 
-	serverFileName := fmt.Sprintf("%s/%d.osz", config.Config.TargetDir, request.SetId)
-	realFilename := cannotUseFilename.ReplaceAllString(fmt.Sprintf("%s %s - %s.osz", a.Id, a.Artist, a.Title), "_")
+	serverFileName := fmt.Sprintf("%s/%d.osz", config.Config.TargetDir, beatmap4d.BeatmapsetId)
+	realFilename := cannotUseFilename.ReplaceAllString(fmt.Sprintf("%d %s - %s.osz", beatmap4d.BeatmapsetId, beatmap4d.Artist, beatmap4d.Title), "_")
 	c.Response().Header().Set("FileName", realFilename)
-	if src.FileList[request.SetId].Unix() >= a.LastUpdated.Unix() { // 맵이 최신인경우
+	if src.FileList[beatmap4d.BeatmapsetId].Unix() >= beatmap4d.LastUpdated.ToTime().Unix() { // 맵이 최신인경우
 		c.Response().Header().Set("Content-Type", "application/x-osu-beatmap-archive")
 		c.Response().Header().Set("Content-Source", "nerinyan.moe")
 		return c.Attachment(serverFileName, realFilename)
@@ -178,7 +158,7 @@ func DownloadBeatmapSet(c echo.Context) (err error) {
 
 	if res == nil || res.StatusCode != http.StatusOK {
 		client = &http.Client{}
-		req, err = http.NewRequest("GET", fmt.Sprintf("https://beatconnect.io/b/%d", request.SetId), nil)
+		req, err = http.NewRequest("GET", fmt.Sprintf("https://beatconnect.io/b/%d", beatmap4d.BeatmapsetId), nil)
 
 		if err != nil {
 			return errors.New("beatconnect request Build Error")
@@ -254,7 +234,7 @@ func DownloadBeatmapSet(c echo.Context) (err error) {
 		}
 	}
 	if cLen == buf.Len() {
-		return saveLocal(&buf, serverFileName, request.SetId)
+		return saveLocal(&buf, serverFileName, beatmap4d.BeatmapsetId)
 	}
 	errMsg := fmt.Sprintf("filesize not match: bancho response bytes : %d | downloaded bytes : %d", cLen, buf.Len())
 	pterm.Error.Printfln(errMsg)

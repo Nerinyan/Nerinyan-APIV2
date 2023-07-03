@@ -12,6 +12,7 @@ require (
 	github.com/surgebase/porter2 v0.0.0-20150829210152-56e4718818e8
 	gorm.io/driver/mysql v1.5.0
 	gorm.io/gorm v1.25.0
+	gorm.io/plugin/dbresolver v1.4.1
 )
 
 require (
