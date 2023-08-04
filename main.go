@@ -22,8 +22,9 @@ import (
 func init() {
 	ch := make(chan struct{})
 	config.LoadConfig()
-	src.StartIndex()
 	mariadb.Connect()
+	src.StartIndex()
+	src.StartBeatmapSetCounter()
 	middlewareFunc.StartHandler()
 	go banchoCrawler.LoadBancho(ch)
 	_ = <-ch

@@ -11,8 +11,9 @@ import (
 func Status(c echo.Context) error {
 	return c.JSON(
 		http.StatusOK, map[string]interface{}{
-			"CpuThreadCount":        runtime.NumCPU(),
-			"RunningGoroutineCount": runtime.NumGoroutine(),
+			"cpuThreadCount":        runtime.NumCPU(),
+			"runningGoroutineCount": runtime.NumGoroutine(),
+			"beatmapSetCount":       src.BeatmapSetCount,
 			"apiCount":              *banchoCrawler.ApiCount,
 			"fileCount":             len(src.FileList),
 			"fileSize":              src.FileSizeToString,
