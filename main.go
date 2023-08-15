@@ -4,11 +4,12 @@ import (
 	"github.com/Nerinyan/Nerinyan-APIV2/banchoCrawler"
 	"github.com/Nerinyan/Nerinyan-APIV2/config"
 	"github.com/Nerinyan/Nerinyan-APIV2/db/mariadb"
+	"github.com/Nerinyan/Nerinyan-APIV2/db/meilisearch"
 	"github.com/Nerinyan/Nerinyan-APIV2/logger"
 	"github.com/Nerinyan/Nerinyan-APIV2/middlewareFunc"
 	"github.com/Nerinyan/Nerinyan-APIV2/route/common"
 	"github.com/Nerinyan/Nerinyan-APIV2/route/download"
-	"github.com/Nerinyan/Nerinyan-APIV2/route/search"
+	"github.com/Nerinyan/Nerinyan-APIV2/route/searchv2"
 	"github.com/Nerinyan/Nerinyan-APIV2/src"
 	"github.com/Nerinyan/Nerinyan-APIV2/webhook"
 	"github.com/labstack/echo/v4"
@@ -23,6 +24,7 @@ func init() {
 	ch := make(chan struct{})
 	config.LoadConfig()
 	mariadb.Connect()
+	meilisearch.InitMeiliSearch()
 	src.StartIndex()
 	src.StartBeatmapSetCounter()
 	middlewareFunc.StartHandler()
@@ -49,7 +51,6 @@ func main() {
 				"time":       time.Now(),
 			},
 		)
-
 	}
 
 	e.Renderer = &download.Renderer
@@ -112,12 +113,12 @@ func main() {
 	)
 
 	// 비트맵 리스트 검색용 ================================================================================================
-	e.GET("/search", search.Search)
-	e.POST("/search", search.Search)
+	e.GET("/search", searchv2.Search)
+	e.POST("/search", searchv2.Search)
 
 	// 비트맵 정보 검색
-	e.GET("/search/s/:setId", search.SearchS)
-	e.GET("/search/b/:mapId", search.SearchB)
+	e.GET("/search/s/:setId", searchv2.SearchS)
+	e.GET("/search/b/:mapId", searchv2.SearchB)
 
 	// 개발중 || 테스트중 ===================================================================================================
 

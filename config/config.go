@@ -22,6 +22,11 @@ type config struct {
 	Sql struct {
 		Url string `json:"url"`
 	} `json:"sql"`
+	MeiliSearch struct {
+		Host    string `json:"host"`
+		APIKey  string `json:"api_key"`
+		Timeout int    `json:"timeout"` //sec 단위
+	} `json:"meiliSearch"`
 	Osu struct {
 		Username string `json:"username"`
 		Passwd   string `json:"passwd"`
