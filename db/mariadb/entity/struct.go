@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+// RFC3339 YYYY-MM-DDThh-mm-ssZ
 type RFC3339 time.Time
 
 func (t RFC3339) MarshalJSON() ([]byte, error) {

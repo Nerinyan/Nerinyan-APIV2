@@ -13,12 +13,12 @@ type BanchoBeatmapSetEntity struct {
 	ArtistUnicode  *string `json:"artist_unicode" gorm:"column:ARTIST_UNICODE"`
 	Creator        *string `json:"creator" gorm:"column:CREATOR"`
 	FavouriteCount *int    `json:"favourite_count" gorm:"column:FAVOURITE_COUNT"`
-	HypeCurrent    *int    `json:"-" gorm:"column:HYPE_CURRENT"`  // 조회용
-	HypeRequired   *int    `json:"-" gorm:"column:HYPE_REQUIRED"` // 조회용
-	Hype           struct {
-		Current  *int `json:"current"`
-		Required *int `json:"required"`
-	} `json:"hype" gorm:"-"`
+	//HypeCurrent    *int    `json:"-" gorm:"column:HYPE_CURRENT"`  // 조회용
+	//HypeRequired   *int    `json:"-" gorm:"column:HYPE_REQUIRED"` // 조회용
+	Hype struct {
+		Current  *int `json:"current" gorm:"column:HYPE_CURRENT"`
+		Required *int `json:"required" gorm:"column:HYPE_REQUIRED"`
+	} `json:"hype" gorm:"embedded;embeddedPrefix:HYPE_"`
 	Nsfw                         *bool   `json:"nsfw" gorm:"column:NSFW"`
 	PlayCount                    *int    `json:"play_count" gorm:"column:PLAY_COUNT"`
 	Source                       *string `json:"source" gorm:"column:SOURCE"`
@@ -80,18 +80,18 @@ type BanchoBeatmapSetEntity struct {
 }
 
 func (v *BanchoBeatmapSetEntity) AfterFind(tx *gorm.DB) (err error) {
-	v.Hype.Required = v.HypeRequired
-	v.Hype.Current = v.HypeCurrent
-	v.Availability.DownloadDisabled = v.AvailabilityDownloadDisabled
-	v.Availability.MoreInformation = v.AvailabilityMoreInformation
-	v.Discussion.Enabled = v.DiscussionEnabled
-	v.Discussion.Locked = v.DiscussionLocked
-	v.Nominations.SummaryCurrent = v.NominationsSummaryCurrent
-	v.Nominations.SummaryRequired = v.NominationsSummaryRequired
-	v.Genre.Id = v.GenreId
-	v.Genre.Name = v.GenreName
-	v.Language.Id = v.LanguageId
-	v.Language.Name = v.LanguageName
+	//v.Hype.Required = v.HypeRequired
+	//v.Hype.Current = v.HypeCurrent
+	//v.Availability.DownloadDisabled = v.AvailabilityDownloadDisabled
+	//v.Availability.MoreInformation = v.AvailabilityMoreInformation
+	//v.Discussion.Enabled = v.DiscussionEnabled
+	//v.Discussion.Locked = v.DiscussionLocked
+	//v.Nominations.SummaryCurrent = v.NominationsSummaryCurrent
+	//v.Nominations.SummaryRequired = v.NominationsSummaryRequired
+	//v.Genre.Id = v.GenreId
+	//v.Genre.Name = v.GenreName
+	//v.Language.Id = v.LanguageId
+	//v.Language.Name = v.LanguageName
 	for i := range v.Beatmaps {
 		v.Beatmaps[i].SetBeatmapSet(v)
 	}

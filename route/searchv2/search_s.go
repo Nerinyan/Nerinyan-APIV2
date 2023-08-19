@@ -2,8 +2,8 @@ package searchv2
 
 import (
 	"fmt"
-	"github.com/Nerinyan/Nerinyan-APIV2/banchoCrawler"
-	ms "github.com/Nerinyan/Nerinyan-APIV2/db/meilisearch"
+	ms "github.com/Nerinyan/Nerinyan-APIV2/db/ms"
+	"github.com/Nerinyan/Nerinyan-APIV2/entity"
 	"github.com/labstack/echo/v4"
 	"github.com/meilisearch/meilisearch-go"
 	"github.com/pterm/pterm"
@@ -41,7 +41,7 @@ func SearchS(c echo.Context) (err error) {
 		return c.JSON(http.StatusOK, struct{}{})
 	}
 
-	var resp []banchoCrawler.Beatmasets
+	var resp []entity.Beatmaset
 	if err = ms.HitsMapper(res.Hits, &resp); err != nil {
 		return
 	}

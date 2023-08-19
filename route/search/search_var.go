@@ -10,8 +10,7 @@ import (
 )
 
 var (
-	banchoMapRegex, _ = regexp.Compile(`(?:https://osu[.]ppy[.]sh/beatmapsets/)(\d+?)(?:\D|$)`)
-	maniaKeyRegex, _  = regexp.Compile(`(\[[0-9]K\] )`)
+	maniaKeyRegex, _ = regexp.Compile(`(\[[0-9]K\] )`)
 
 	regexpReplace, _    = regexp.Compile(`[^0-9A-z]|[\[\]]`)
 	regexpByteString, _ = regexp.Compile(`^((0x[\da-fA-F]{1,2})|([\da-fA-F]{1,2})|(1[0-2][0-7]))$`)
@@ -40,43 +39,52 @@ var (
 		"default":   {4, 2, 1},
 	}
 	orderBy = map[string]string{
-		"artist_desc": "ARTIST DESC",
-		"artist desc": "ARTIST DESC",
-		"artist_asc":  "ARTIST",
-		"artist":      "ARTIST",
-		"artist asc":  "ARTIST",
+		"title_asc":  "title:asc",
+		"title":      "title:asc",
+		"title asc":  "title:asc",
+		"title_desc": "title:desc",
+		"title desc": "title:desc",
 
-		"favourites_asc":       "FAVOURITE_COUNT",
-		"favourite_count":      "FAVOURITE_COUNT",
-		"favourite_count asc":  "FAVOURITE_COUNT",
-		"favourites_desc":      "FAVOURITE_COUNT DESC",
-		"favourite_count desc": "FAVOURITE_COUNT DESC",
+		"artist_desc": "artist:desc",
+		"artist desc": "artist:desc",
+		"artist_asc":  "artist:asc",
+		"artist":      "artist:asc",
+		"artist asc":  "artist:asc",
 
-		"plays_asc":       "PLAY_COUNT",
-		"play_count":      "PLAY_COUNT",
-		"play_count asc":  "PLAY_COUNT",
-		"plays_desc":      "PLAY_COUNT DESC",
-		"play_count desc": "PLAY_COUNT DESC",
+		"difficulty_rating":      "difficulty_rating:asc",
+		"difficulty_rating asc":  "difficulty_rating:asc",
+		"difficulty_rating_asc":  "difficulty_rating:asc",
+		"difficulty_rating desc": "difficulty_rating:desc",
+		"difficulty_rating_desc": "difficulty_rating:desc",
 
-		"ranked_asc":       "RANKED_DATE",
-		"ranked_date":      "RANKED_DATE",
-		"ranked_date asc":  "RANKED_DATE",
-		"ranked_desc":      "RANKED_DATE DESC",
-		"ranked_date desc": "RANKED_DATE DESC",
+		"favourites_asc":       "favourite_count:asc",
+		"favourite_count":      "favourite_count:asc",
+		"favourite_count asc":  "favourite_count:asc",
+		"favourites_desc":      "favourite_count:desc",
+		"favourite_count desc": "favourite_count:desc",
 
-		"last_updated":      "LAST_UPDATED",
-		"last_updated asc":  "LAST_UPDATED",
-		"last_updated desc": "LAST_UPDATED DESC",
-		"updated_asc":       "LAST_UPDATED",
-		"updated_desc":      "LAST_UPDATED DESC",
+		"plays_asc":       "play_count:asc",
+		"play_count":      "play_count:asc",
+		"play_count asc":  "play_count:asc",
+		"plays_desc":      "play_count:desc",
+		"play_count desc": "play_count:desc",
+		"play_count_desc": "play_count:desc",
 
-		"title_asc":  "TITLE",
-		"title":      "TITLE",
-		"title asc":  "TITLE",
-		"title_desc": "TITLE DESC",
-		"title desc": "TITLE DESC",
-		"default":    "RANKED_DATE DESC",
+		"ranked_asc":       "ranked_date:asc",
+		"ranked_date":      "ranked_date:asc",
+		"ranked_date asc":  "ranked_date:asc",
+		"ranked_desc":      "ranked_date:desc",
+		"ranked_date desc": "ranked_date:desc",
+
+		"last_updated":      "last_updated:asc",
+		"last_updated asc":  "last_updated:asc",
+		"last_updated desc": "last_updated:desc",
+		"updated_asc":       "last_updated:asc",
+		"updated_desc":      "last_updated:desc",
+
+		"default": "ranked_date:desc",
 	}
+
 	searchOption = map[string]uint32{
 		"artist":   1 << 0, // 1
 		"a":        1 << 0,

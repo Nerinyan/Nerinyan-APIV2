@@ -1,4 +1,4 @@
-package meilisearch
+package ms
 
 import "github.com/goccy/go-json"
 

@@ -3,7 +3,8 @@ package banchoCrawler
 import (
 	"fmt"
 	"github.com/Nerinyan/Nerinyan-APIV2/config"
-	"github.com/Nerinyan/Nerinyan-APIV2/db/meilisearch"
+	"github.com/Nerinyan/Nerinyan-APIV2/db/ms"
+	"github.com/Nerinyan/Nerinyan-APIV2/entity"
 	"github.com/goccy/go-json"
 	"github.com/pkg/errors"
 	"github.com/pterm/pterm"
@@ -94,6 +95,7 @@ func awaitApiCount() {
 		time.Sleep(time.Millisecond * 500)
 	}
 }
+
 func ManualUpdateBeatmapSet(id int) {
 	var err error
 	defer func() {
@@ -114,6 +116,35 @@ func ManualUpdateBeatmapSet(id int) {
 	}
 }
 
+func fetchToBancho(url string, cs *string) {
+	var err error
+	defer func() {
+		if err != nil {
+			pterm.Error.WithShowLineNumber().Println(url, err)
+		}
+	}()
+	if cs != nil && *cs != "" {
+		url += "&cursor_string=" + *cs
+	}
+
+	var data BeatmapSetSearch
+
+	err = stdGETBancho(url, &data)
+	if err != nil {
+		return
+	}
+	if *data.CursorString == "" {
+		return
+	}
+	if err = updateSearchBeatmaps(data.Beatmapsets); err != nil {
+		return
+	}
+	if cs != nil {
+		cs = data.CursorString
+	}
+	return
+
+}
 func getUpdatedMapRanked() {
 	var err error
 	defer func() {
@@ -302,7 +333,7 @@ func stdGETBancho(url string, str interface{}) (err error) {
 
 }
 
-func updateSearchBeatmaps(data []Beatmasets) (err error) {
+func updateSearchBeatmaps(data []entity.Beatmaset) (err error) {
 
 	if data == nil {
 		return
@@ -310,7 +341,7 @@ func updateSearchBeatmaps(data []Beatmasets) (err error) {
 	if len(data) < 1 {
 		return
 	}
-	_, err = meilisearch.GetIndexBeatMapSet().UpdateDocuments(data, "id")
+	_, err = ms.GetIndexBeatMapSet().UpdateDocuments(data, "id")
 	if err != nil {
 		pterm.Error.WithShowLineNumber().Println(err)
 		return err

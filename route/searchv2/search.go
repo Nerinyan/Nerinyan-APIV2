@@ -2,7 +2,7 @@ package searchv2
 
 import (
 	"fmt"
-	ms "github.com/Nerinyan/Nerinyan-APIV2/db/meilisearch"
+	ms "github.com/Nerinyan/Nerinyan-APIV2/db/ms"
 	"github.com/Nerinyan/Nerinyan-APIV2/utils"
 	"github.com/labstack/echo/v4"
 	"github.com/meilisearch/meilisearch-go"
@@ -80,7 +80,7 @@ func Search(c echo.Context) (err error) {
 	}
 	//================================================================================================================================
 	if params.DifficultyRating.Min != 0 {
-		filter = append(filter, fmt.Sprintf("beatmaps.difficulty_rating <= %f", params.DifficultyRating.Min))
+		filter = append(filter, fmt.Sprintf("beatmaps.difficulty_rating >= %f", params.DifficultyRating.Min))
 	}
 	if params.DifficultyRating.Max != 0 {
 		filter = append(filter, fmt.Sprintf("beatmaps.difficulty_rating <= %f", params.DifficultyRating.Max))
@@ -140,8 +140,7 @@ func Search(c echo.Context) (err error) {
 	if err != nil {
 		return err
 	}
-	pterm.Info.Printfln("Filter: '%v'", param.Filter)
-	pterm.Info.Printfln("query: '%s'", res.Query)
+	pterm.Info.Printfln("query: '%s' sort: '%s' Filter: '%v'", res.Query, params.Sort, param.Filter)
 	return c.JSON(200, res.Hits)
 }
 
@@ -155,6 +154,7 @@ func parseOrder(order string) (res string) {
 	res = orderBy[strings.ToLower(order)]
 	return
 }
+
 func intSliceToCSV(nums []int) string {
 	strs := make([]string, len(nums))
 	for i, n := range nums {

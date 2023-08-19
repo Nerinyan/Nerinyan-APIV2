@@ -3,7 +3,6 @@ package config
 import (
 	"github.com/goccy/go-json"
 	"github.com/pterm/pterm"
-	"io/ioutil"
 	"os"
 )
 
@@ -56,7 +55,7 @@ type config struct {
 var Config config
 
 func LoadConfig() {
-	b, err := ioutil.ReadFile("./config.json")
+	b, err := os.ReadFile("./config.json")
 	if err != nil {
 		out, err := os.Create("./config.json")
 		if err != nil {
@@ -86,5 +85,5 @@ func LoadConfig() {
 }
 func (v *config) Save() {
 	file, _ := json.MarshalIndent(v, "", "  ")
-	_ = ioutil.WriteFile("config.json", file, 0755)
+	_ = os.WriteFile("config.json", file, 0755)
 }
