@@ -101,7 +101,7 @@ func ManualUpdateBeatmapSet(id int) {
 	var err error
 	defer func() {
 		if err != nil {
-			pterm.Error.Println(err)
+			pterm.Error.WithShowLineNumber().Println(err)
 		}
 	}()
 	url := fmt.Sprintf("https://osu.ppy.sh/api/v2/beatmapsets/search?nsfw=true&s=any&q=%d", id)
@@ -121,7 +121,7 @@ func getUpdatedMapRanked() {
 	var err error
 	defer func() {
 		if err != nil {
-			pterm.Error.Println(err)
+			pterm.Error.WithShowLineNumber().Println(err)
 		}
 	}()
 	url := "https://osu.ppy.sh/api/v2/beatmapsets/search?nsfw=true&s=ranked"
@@ -144,7 +144,7 @@ func getUpdatedMapLoved() {
 	var err error
 	defer func() {
 		if err != nil {
-			pterm.Error.Println(err)
+			pterm.Error.WithShowLineNumber().Println(err)
 		}
 	}()
 	url := "https://osu.ppy.sh/api/v2/beatmapsets/search?nsfw=true&s=loved"
@@ -163,7 +163,7 @@ func getUpdatedMapQualified() {
 	var err error
 	defer func() {
 		if err != nil {
-			pterm.Error.Println(err)
+			pterm.Error.WithShowLineNumber().Println(err)
 		}
 	}()
 	url := "https://osu.ppy.sh/api/v2/beatmapsets/search?nsfw=true&s=qualified"
@@ -183,7 +183,7 @@ func getGraveyardMap() {
 	var err error
 	defer func() {
 		if err != nil {
-			pterm.Error.Println(err)
+			pterm.Error.WithShowLineNumber().Println(err)
 		}
 	}()
 	url := ""
@@ -215,7 +215,7 @@ func getUpdatedMapDesc() {
 	var err error
 	defer func() {
 		if err != nil {
-			pterm.Error.Println(err)
+			pterm.Error.WithShowLineNumber().Println(err)
 		}
 	}()
 	url := "https://osu.ppy.sh/api/v2/beatmapsets/search?nsfw=true&sort=updated_desc&s=any"
@@ -241,7 +241,7 @@ func getUpdatedMapAsc() {
 	var err error
 	defer func() {
 		if err != nil {
-			pterm.Error.Println(err)
+			pterm.Error.WithShowLineNumber().Println(err)
 		}
 	}()
 	url := ""
