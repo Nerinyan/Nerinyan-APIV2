@@ -4,6 +4,15 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
+	"io"
+	"net/http"
+	"os"
+	"regexp"
+	"strconv"
+	"strings"
+	"sync"
+	"time"
+
 	"github.com/Nerinyan/Nerinyan-APIV2/banchoCrawler"
 	"github.com/Nerinyan/Nerinyan-APIV2/bodyStruct"
 	"github.com/Nerinyan/Nerinyan-APIV2/config"
@@ -13,14 +22,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 	"github.com/pterm/pterm"
-	"io"
-	"net/http"
-	"os"
-	"regexp"
-	"strconv"
-	"strings"
-	"sync"
-	"time"
 )
 
 var cannotUseFilename, _ = regexp.Compile(`([\\/:*?"<>|])`)
@@ -170,6 +171,9 @@ func DownloadBeatmapSet(c echo.Context) (err error) {
 		if res.StatusCode != http.StatusOK {
 			pterm.Error.Println("Bancho request Error. :" + res.Status)
 			res.Body.Close()
+		}
+		if res.Header.Get("Content-Type") != "application/x-osu-beatmap-archive" {
+			return errors.New("bancho returns weird file")
 		}
 		mutex.Lock()
 		downloadCount++
