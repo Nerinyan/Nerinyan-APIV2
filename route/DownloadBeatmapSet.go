@@ -227,6 +227,16 @@ func DownloadBeatmapSet(c echo.Context) (err error) {
 	}
 	defer res.Body.Close()
 
+	if res.Header.Get("Content-Type") != "application/x-osu-beatmap-archive" {
+		return c.JSON(http.StatusInternalServerError, logger.Error(c, &bodyStruct.ErrorStruct{
+			Code:      "DownloadBeatmapSet-012",
+			Path:      c.Path(),
+			RequestId: c.Response().Header().Get("X-Request-ID"),
+			Error:     errors.New(http.StatusText(res.StatusCode)),
+			Message:   "Bancho request Error. :" + res.Status,
+		}))
+	}
+
 	if res.StatusCode != http.StatusOK {
 		return c.JSON(http.StatusInternalServerError, logger.Error(c, &bodyStruct.ErrorStruct{
 			Code:      "DownloadBeatmapSet-009",
