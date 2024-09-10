@@ -3,8 +3,10 @@ package banchoCrawler
 import (
 	"bytes"
 	"encoding/base64"
+	"fmt"
 	"github.com/Nerinyan/Nerinyan-APIV2/config"
 	"github.com/goccy/go-json"
+	"github.com/pkg/errors"
 	"github.com/pterm/pterm"
 	"io/ioutil"
 	"mime/multipart"
@@ -64,7 +66,7 @@ func parseTokenExpiraton() (t int64) {
 func tryLogin() (err error) {
 	spinner, _ := pterm.DefaultSpinner.Start("Trying Login Bancho...")
 	if err = login(true); err != nil {
-		spinner.Fail("fail refresh Bancho Token")
+		spinner.Fail("fail refresh Bancho Token: ", err)
 		if err = login(false); err != nil {
 			return
 		}
@@ -145,5 +147,8 @@ func login(refresh bool) (err error) {
 		return
 	}
 
+	if res.StatusCode != 200 {
+		return errors.New(fmt.Sprint(res.StatusCode, string(body)))
+	}
 	return json.Unmarshal(body, &config.Config.Osu.Token)
 }
